@@ -1,4 +1,5 @@
 # sysctl configurations
+
 file=/etc/sysctl.conf
 echo "net.ipv4.tcp_syncookies = 1" >> file
 echo "net.ipv4.tcp_synack_retries = 2" >> file
@@ -18,12 +19,12 @@ echo "kernel.unprivileged_userns_clone = 0" >> file
 echo "fs.protected_hardlinks = 1" >> file
 echo "fs.protected_symlinks = 1" >> file
 echo "fs.suid_dumpable = 0" >> file
-
 sysctl -p
+echo "[+] sysctl configured."
 
 # disable kernel module insertion? (risky)
-/sbin/sysctl -w kernel.modules_disabled=1
-
+#/sbin/sysctl -w kernel.modules_disabled=1
 
 # check if kernel version if old/vulnerable
+echo -n "[.] Kernel version: "
 uname -r

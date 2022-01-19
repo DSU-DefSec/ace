@@ -1,16 +1,16 @@
 #!/bin/bash
 
 # find path of php.ini
-if [ -f /etc/php.ini ]; then
-	ini=/etc/php.ini
-elif [ -f /etc/apache2/php.ini ]; then
-	ini=/etc/php.ini
+ini=/etc/php.ini
+if [ -f /etc/apache2/php.ini ]; then
+	ini=/etc/apache2/php.ini
 else
-	echo "[*] default php.ini path not found. I saved config options in /tmp/php.ini. Copy this file to one of the following locations: "
-	ini=/tmp/php.ini
+	echo "[-] Webserver php.ini path not found. I saved config options to $ini."
+	echo "[.] Here are a list of php.ini files on the system:"
 	find / -name "php.ini" 2>/dev/null
 fi
 
+# write values
 echo "disable_functions = shell_exec, exec, passthru, proc_open, popen, system, phpinfo" >> $ini
 echo "max_execution_time = 3" >> $ini
 echo "register_globals = off" >> $ini
