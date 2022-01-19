@@ -1,24 +1,28 @@
 # ------- Tyler's Saucy Service Monitor -------
-Add-Type -AssemblyName System.Windows.Forms | Out-Null
-[System.Windows.Forms.Application]::EnableVisualStyles()
-$btn = [System.Windows.Forms.MessageBoxButtons]::YESNO
-$ico = [System.Windows.Forms.MessageBoxIcon]::Warning
-$Title = 'Hacker Alert!!!!'
 while($true){
-$Cmp = Get-Service | Where-Object {$_.Status -eq "Running"}
-#$Cmp.ToString()
+	$Cmp = Get-Service | Where-Object {$_.Status -eq "Running"}
 while ($true) {
-$Cmp2 = Get-Service | Where-Object {$_.Status -eq "Running"}
-#$Cmp2.ToString()
-$diff = Compare-Object -ReferenceObject $Cmp -DifferenceObject $Cmp2 -Property Name
-if($diff -ne $null){
-  $Message = $diff.Name + ' has started. Kill This Service?'
-  $Return = [System.Windows.Forms.MessageBox]::Show($Message, $Title, $btn, $ico)
-if ($Return -eq "Yes"){
-  Stop-Service -Name $diff.Name -Force -NoWait  
-}
-if ($Return -eq "No"){
-break
-}}
-sleep -Seconds 1
+	$Cmp2 = Get-Service | Where-Object {$_.Status -eq "Running"}
+	$diff = Compare-Object -ReferenceObject $Cmp -DifferenceObject $Cmp2 -Property Name
+	if($diff -ne $null){
+		$tmp = Get-WmiObject win32_service | ?{$_.Name -like $diff.Name} | select Name, DisplayName, State, PathName
+		if(($tmp.State -eq "Stopped" )){break}
+	  	Write-Output '!!!!!!!!!!A SERVICE HAS STARTED!!!!!!!!!!'
+	  	Write-Output ('Display Name: ' + $tmp.DisplayName)
+	  	Write-Output ('Name: ' + $tmp.Name)
+	  	Write-Output ('State: '+ $tmp.State)
+	  	Write-Output ('Path: ' + $tmp.PathName)
+	  	Write-Output '!!!!!!!!!!A SERVICE HAS STARTED!!!!!!!!!!'
+	  	Write-Output 'Kill? y/n'
+	  	$Return = Read-Host
+		if (($Return -eq "Y") -or ($Return -eq "y")){
+			Stop-Service -Name $diff.Name -Force -NoWait  
+			Write-Output 'Kerblam! Service has been eliminated...'
+			Write-Output 'Might want to search for some bad guys around here'
+			}
+		elseif (($Return -eq "N") -or ($Return -eq "n")){
+			Write-Output 'Letting that service slide...for now...'
+			break
+	}}
+	sleep -Seconds 1
 }}
