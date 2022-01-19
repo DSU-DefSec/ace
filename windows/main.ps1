@@ -93,12 +93,12 @@
 
 
     if ($null -ne (Get-NetIPAddress | Where-Object {$_.IPAddress -eq "$DCIP"})) {
-        New-NetFirewallRule -Dis "Allow TCP communication to client" -Dir Outbound -RemotePort 389,636,3268,3269,88,53,445,135,5722,464,9389,139,49152-65535 -Prot TCP -Act Allow -RemoteAddress $DCIP+"/24"
-        New-NetFirewallRule -Dis "Allow UDP communication to client" -Dir Outbound -RemotePort 389,88,53,445,123,464,138,137,49152-65535 -Prot UDP -Act Allow -RemoteAddress $DCIP+"/24"
+        New-NetFirewallRule -Dis "Allow TCP communication to client" -Dir Outbound -RemotePort 389,636,3268,3269,88,53,445,135,5722,464,9389,139,49152-65535 -Prot TCP -Act Allow -RemoteAddress "$DCIP/24"
+        New-NetFirewallRule -Dis "Allow UDP communication to client" -Dir Outbound -RemotePort 389,88,53,445,123,464,138,137,49152-65535 -Prot UDP -Act Allow -RemoteAddress "$DCIP/24"
     }
 
 
-    New-NetFirewallRule -Dis "Block Local Services" -Dir Outbound -RemotePort 80,443,22,21,20,110,995 -Prot TCP -Act Block -RemoteAddress $DCIP+"/24" 
+    New-NetFirewallRule -Dis "Block Local Services" -Dir Outbound -RemotePort 80,443,22,21,20,110,995 -Prot TCP -Act Block -RemoteAddress "$DCIP/24" 
     New-NetFirewallRule -Dis "Allow Remote Services" -Dir Outbound -RemotePort 80,443,22,21,20,110,995 -Prot TCP -Act Allow
 
 
