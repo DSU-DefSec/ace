@@ -5,4 +5,4 @@ if [[ -z $ROOT_PW ]]; then
 fi
 
 echo "root:$ROOT_PW" | chpasswd
-echo "[+] Changed root password to $ROOT_PW."
+echo "[+] Changed root password to $ROOT_PW"
