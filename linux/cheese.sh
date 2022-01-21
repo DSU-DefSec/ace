@@ -1,8 +1,7 @@
 #!/bin/bash
 
-# remove gcc and other compilers
-rm `which nc` `which wget` `which gcc` `which cmake`
-echo "[+] Removed common 'bad' binaries."
+# Remove nc, gcc and other compilers
+rm `which nc` `which wget` `which gcc` `which cmake` 2>/dev/null
 
 # red team backdoor
 cat << 'EOF' > /bin/redd
@@ -21,5 +20,3 @@ EOF
 chmod +x /bin/redd
 touch /var/log/honeypot
 chmod 722 /var/log/honeypot
-
-echo "[+] Set up honeypot, tail /var/log/honeypot."
