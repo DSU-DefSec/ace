@@ -3,85 +3,10 @@
     
 
 
-
-    reg add "HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server" /v AllowTSConnections /t REG_DWORD /d 1 /f
-    reg add "HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp" /v UserAuthentication /t REG_DWORD /d 1 /f
-    REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 0 /f
-    reg ADD "HKLM\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp" /v PortNumber /t REG_DWORD /d 6969 /f
-    netsh advfirewall firewall set rule group="remote desktop" new enable=yes
-
-    reg add "HKLM\SYSTEM\ControlSet001\Control\Remote Assistance" /V CreateEncryptedOnlyTickets /T REG_DWORD /D 1 /F 
-    reg add "HKLM\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp" /V fDisableEncryption /T REG_DWORD /D 0 /F
-
-    reg add "HKLM\SYSTEM\ControlSet001\Control\Remote Assistance" /V fAllowFullControl /T REG_DWORD /D 0 /F
-    reg add "HKLM\SYSTEM\ControlSet001\Control\Remote Assistance" /V fAllowToGetHelp /T REG_DWORD /D 0 /F 
-    reg add "HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server" /V AllowRemoteRPC /T REG_DWORD /D 0 /F 
-
-
-    reg ADD "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services" /v fResetBroken /t REG_DWORD /d 1 /F
-    reg ADD "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services" /v MaxConnectionTime /t REG_DWORD /d 10000 /F
-
-
-
-
-
-    start-process powershell.exe -argument '-nologo -noprofile -executionpolicy bypass -command [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Set-MpPreference -ThreatIDDefaultAction_Ids "2147597781" -ThreatIDDefaultAction_Actions "6"; Invoke-WebRequest -Uri https://github.com/ION28/BLUESPAWN/releases/download/v0.5.1-alpha/BLUESPAWN-client-x64.exe -OutFile BLUESPAWN-client-x64.exe; & .\BLUESPAWN-client-x64.exe --monitor -a Normal --log=console,xml'
-
-
-    start-process powershell.exe -argument '-nologo -noprofile -executionpolicy bypass -command [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri https://download.comodo.com/cce/download/setups/cce_public_x64.zip?track=5890 -OutFile cce_public_x64.zip; Expand-Archive cce_public_x64.zip; .\cce_public_x64\cce_2.5.242177.201_x64\cce_x64\cce.exe -u; read-host "CCE Continue When Updated"; .\cce_public_x64\cce_2.5.242177.201_x64\cce_x64\cce.exe -s \"m;f;r\" -d "c"; read-host "CCE Finished"'
-
-
-
-    sc.exe config lanmanworkstation depend= bowser/mrxsmb20/nsi
-    sc.exe config mrxsmb10 start= disabled
-    Disable-WindowsOptionalFeature -Online -FeatureName SMB1Protocol     
-    Set-SmbServerConfiguration -EnableSMB1Protocol $false -Force
-
-
-    Set-SmbServerConfiguration -EnableSMB2Protocol $true -Force
-    Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters" SMB2 -Type DWORD -Value 1 -Force
-
-
-    net share C:\ /delete
-
-
-
-
-    Set-MpPreference -ExclusionPath '<' -ExclusionProcess '<' -ExclusionExtension '<'
-    Remove-MpPreference -ExclusionPath '<' -ExclusionProcess '<' -ExclusionExtension '<'
-
-
-    Set-MpPreference -ThreatIDDefaultAction_Ids "0000000000" -ThreatIDDefaultAction_Actions "3"
-    
-
-    Set-MpPreference -SignatureScheduleDay Everyday -SignatureScheduleTime 120 -CheckForSignaturesBeforeRunningScan $true -DisableArchiveScanning $false -DisableAutoExclusions $false -DisableBehaviorMonitoring $false -DisableBlockAtFirstSeen $false -DisableCatchupFullScan $false -DisableCatchupQuickScan $false -DisableEmailScanning $false -DisableIOAVProtection $false -DisableIntrusionPreventionSystem $false -DisablePrivacyMode $false -DisableRealtimeMonitoring $false -DisableRemovableDriveScanning $false -DisableRestorePoint $false -DisableScanningMappedNetworkDrivesForFullScan $false -DisableScanningNetworkFiles $false -DisableScriptScanning $false -HighThreatDefaultAction Remove -LowThreatDefaultAction Quarantine -MAPSReporting 0 -ModerateThreatDefaultAction Quarantine -PUAProtection Enabled -QuarantinePurgeItemsAfterDelay 1 -RandomizeScheduleTaskTimes $false -RealTimeScanDirection 0 -RemediationScheduleDay 0 -RemediationScheduleTime 100 -ReportingAdditionalActionTimeOut 5 -ReportingCriticalFailureTimeOut 6 -ReportingNonCriticalTimeOut 7 -ScanAvgCPULoadFactor 50 -ScanOnlyIfIdleEnabled $false -ScanPurgeItemsAfterDelay 15 -ScanScheduleDay 0 -ScanScheduleQuickScanTime 200 -ScanScheduleTime 200 -SevereThreatDefaultAction Remove -SignatureAuGracePeriod 30 -SignatureUpdateCatchupInterval 1 -SignatureUpdateInterval 1 -SubmitSamplesConsent 2 -UILockdown $false -UnknownThreatDefaultAction Quarantine -Force
-
-
-    start-service WinDefend
-    reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender" /v "DisableAntiSpyware" /t REG_DWORD /d 0 /f
-    reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender" /v "DisableAntiVirus" /t REG_DWORD /d 0 /f
-    reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender" /v "ServiceKeepAlive" /t REG_DWORD /d 1 /f
-    reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Scan" /v "DisableHeuristics" /t REG_DWORD /d 0 /f
-    reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Attachments" /v "ScanWithAntiVirus" /t REG_DWORD /d 3 /f
-    reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection" /v "DisableRealtimeMonitoring" /t REG_DWORD /d 0 /f
-    reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Scan" /v "CheckForSignaturesBeforeRunningScan" /t REG_DWORD /d 1 /f
-    reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection" /v "DisableBehaviorMonitoring" /t REG_DWORD /d 1 /f
-    reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Reporting" /v "DisableGenericRePorts" /t REG_DWORD /d 1 /f
-    reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" /v "LocalSettingOverrideSpynetReporting" /t REG_DWORD /d 0 /f
-    reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" /v "SubmitSamplesConsent" /t REG_DWORD /d 2 /f
-    reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" /v "DisableBlockAtFirstSeen" /t REG_DWORD /d 1 /f
-    reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" /v "SpynetReporting" /t REG_DWORD /d 0 /f
-
-
-    reg ADD "HKLM\SOFTWARE\Microsoft\Windows Defender\Features" /v TamperProtection /t REG_DWORD /d 5 /F
-
-
-
-
     net start mpssvc
 
 
-    Set-NetFirewallProfile (New-Object -ComObject HNetCfg.FwPolicy2).RestoreLocalFirewallDefaults()
+    netsh advfirewall reset
     Disable-NetFirewallRule;
 
 
@@ -149,6 +74,71 @@
 
 
 
+    reg add "HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server" /v AllowTSConnections /t REG_DWORD /d 1 /f
+    reg add "HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp" /v UserAuthentication /t REG_DWORD /d 1 /f
+    REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 0 /f
+    reg ADD "HKLM\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp" /v PortNumber /t REG_DWORD /d 6969 /f
+    netsh advfirewall firewall set rule group="remote desktop" new enable=yes
+
+    reg add "HKLM\SYSTEM\ControlSet001\Control\Remote Assistance" /V CreateEncryptedOnlyTickets /T REG_DWORD /D 1 /F 
+    reg add "HKLM\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp" /V fDisableEncryption /T REG_DWORD /D 0 /F
+
+    reg add "HKLM\SYSTEM\ControlSet001\Control\Remote Assistance" /V fAllowFullControl /T REG_DWORD /D 0 /F
+    reg add "HKLM\SYSTEM\ControlSet001\Control\Remote Assistance" /V fAllowToGetHelp /T REG_DWORD /D 0 /F 
+    reg add "HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server" /V AllowRemoteRPC /T REG_DWORD /D 0 /F 
+
+
+    reg ADD "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services" /v fResetBroken /t REG_DWORD /d 1 /F
+    reg ADD "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services" /v MaxConnectionTime /t REG_DWORD /d 10000 /F
+
+
+
+
+    sc.exe config lanmanworkstation depend= bowser/mrxsmb20/nsi 
+    sc.exe config mrxsmb10 start= disabled
+    Disable-WindowsOptionalFeature -Online -FeatureName SMB1Protocol -NoRestart  
+    Set-SmbServerConfiguration -EnableSMB1Protocol $false -Force 
+
+
+    Set-SmbServerConfiguration -EnableSMB2Protocol $true -Force
+    Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters" SMB2 -Type DWORD -Value 1 -Force
+
+
+    net share C:\ /delete
+
+
+
+
+    Set-MpPreference -ExclusionPath '<' -ExclusionProcess '<' -ExclusionExtension '<'
+    Remove-MpPreference -ExclusionPath '<' -ExclusionProcess '<' -ExclusionExtension '<'
+
+
+    Set-MpPreference -ThreatIDDefaultAction_Ids "0000000000" -ThreatIDDefaultAction_Actions "3"
+    
+
+    Set-MpPreference -SignatureScheduleDay Everyday -SignatureScheduleTime 120 -CheckForSignaturesBeforeRunningScan $true -DisableArchiveScanning $false -DisableAutoExclusions $false -DisableBehaviorMonitoring $false -DisableBlockAtFirstSeen $false -DisableCatchupFullScan $false -DisableCatchupQuickScan $false -DisableEmailScanning $false -DisableIOAVProtection $false -DisableIntrusionPreventionSystem $false -DisablePrivacyMode $false -DisableRealtimeMonitoring $false -DisableRemovableDriveScanning $false -DisableRestorePoint $false -DisableScanningMappedNetworkDrivesForFullScan $false -DisableScanningNetworkFiles $false -DisableScriptScanning $false -HighThreatDefaultAction Remove -LowThreatDefaultAction Quarantine -MAPSReporting 0 -ModerateThreatDefaultAction Quarantine -PUAProtection Enabled -QuarantinePurgeItemsAfterDelay 1 -RandomizeScheduleTaskTimes $false -RealTimeScanDirection 0 -RemediationScheduleDay 0 -RemediationScheduleTime 100 -ReportingAdditionalActionTimeOut 5 -ReportingCriticalFailureTimeOut 6 -ReportingNonCriticalTimeOut 7 -ScanAvgCPULoadFactor 50 -ScanOnlyIfIdleEnabled $false -ScanPurgeItemsAfterDelay 15 -ScanScheduleDay 0 -ScanScheduleQuickScanTime 200 -ScanScheduleTime 200 -SevereThreatDefaultAction Remove -SignatureAuGracePeriod 30 -SignatureUpdateCatchupInterval 1 -SignatureUpdateInterval 1 -SubmitSamplesConsent 2 -UILockdown $false -UnknownThreatDefaultAction Quarantine -Force
+
+
+    start-service WinDefend
+    reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender" /v "DisableAntiSpyware" /t REG_DWORD /d 0 /f
+    reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender" /v "DisableAntiVirus" /t REG_DWORD /d 0 /f
+    reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender" /v "ServiceKeepAlive" /t REG_DWORD /d 1 /f
+    reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Scan" /v "DisableHeuristics" /t REG_DWORD /d 0 /f
+    reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Attachments" /v "ScanWithAntiVirus" /t REG_DWORD /d 3 /f
+    reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection" /v "DisableRealtimeMonitoring" /t REG_DWORD /d 0 /f
+    reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Scan" /v "CheckForSignaturesBeforeRunningScan" /t REG_DWORD /d 1 /f
+    reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection" /v "DisableBehaviorMonitoring" /t REG_DWORD /d 1 /f
+    reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Reporting" /v "DisableGenericRePorts" /t REG_DWORD /d 1 /f
+    reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" /v "LocalSettingOverrideSpynetReporting" /t REG_DWORD /d 0 /f
+    reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" /v "SubmitSamplesConsent" /t REG_DWORD /d 2 /f
+    reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" /v "DisableBlockAtFirstSeen" /t REG_DWORD /d 1 /f
+    reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" /v "SpynetReporting" /t REG_DWORD /d 0 /f
+
+
+    reg ADD "HKLM\SOFTWARE\Microsoft\Windows Defender\Features" /v TamperProtection /t REG_DWORD /d 5 /F
+
+
+
 
 
     Set-Service -Name wuauserv -StartupType Automatic -Status Running
@@ -183,63 +173,103 @@
     Set-Service -Name Spooler -StartupType Disabled -Status Stopped
 
 
-    dism /online /disable-feature /featurename:TFTP
+    dism /online /disable-feature /featurename:TFTP /NoRestart
 
 
-    dism /online /disable-feature /featurename:TelnetClient
-    dism /online /disable-feature /featurename:TelnetServer
+    dism /online /disable-feature /featurename:TelnetClient /NoRestart
+    dism /online /disable-feature /featurename:TelnetServer /NoRestart
 
 
-    dism /online /disable-feature /featurename:"SMB1Protocol"
+    dism /online /disable-feature /featurename:"SMB1Protocol" /NoRestart
 
 
 
     Get-Service -Name RemoteRegistry | Stop-Service -Force
-    Set-Service -Name RemoteRegistry -StartupType Disabled -Status Stopped
+    Set-Service -Name RemoteRegistry -StartupType Disabled -Status Stopped -Confirm $false
 
 
     Disable-PSRemoting -Force
     Get-Service -Name WinRM | Stop-Service -Force
-    Set-Service -Name WinRM -StartupType Disabled -Status Stopped
+    Set-Service -Name WinRM -StartupType Disabled -Status Stopped -Confirm $false
 
     Remove-Item -Path WSMan:\Localhost\listener\listener* -Recurse
     Set-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\policies\system -Name LocalAccountTokenFilterPolicy -Value 0
 
 
 
+    remove-item -Force 'C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup\*'
+    remove-item -Force 'C:\autoexec.bat'
+    remove-item -Force "C:\Users\*\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\*"
+    remove-item -Force "C:\Windows\System32\GroupPolicy\Machine\Scripts\Startup"
+    remove-item -Force "C:\Windows\System32\GroupPolicy\Machine\Scripts\Shutdown"
+    remove-item -Force "C:\Windows\System32\GroupPolicy\User\Scripts\Logon"
+    remove-item -Force "C:\Windows\System32\GroupPolicy\User\Scripts\Logoff"
+    reg delete HKLM\Software\Microsoft\Windows\CurrentVersion\Run /VA /F
+    reg delete HKLM\Software\Microsoft\Windows\CurrentVersion\RunOnce /VA /F 
+    reg delete HKCU\Software\Microsoft\Windows\CurrentVersion\Run /VA /F
+    reg delete HKCU\Software\Microsoft\Windows\CurrentVersion\RunOnce /VA /F
+
+
+    REG delete "HKLM\SYSTEM\CurrentControlSet\Control\Lsa" /v "Notification Packages"  /f
+
+
+
+    reg delete "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\sethc.exe" /v Debugger /f
+    TAKEOWN /F C:\Windows\System32\sethc.exe /A
+    ICACLS C:\Windows\System32\sethc.exe /grant administrators:F
+    del C:\Windows\System32\sethc.exe -Force
+
+
+    TAKEOWN /F C:\Windows\System32\Utilman.exe /A
+    ICACLS C:\Windows\System32\Utilman.exe /grant administrators:F
+    del C:\Windows\System32\Utilman.exe -Force
+
+
+    TAKEOWN /F C:\Windows\System32\osk.exe /A
+    ICACLS C:\Windows\System32\osk.exe /grant administrators:F
+    del C:\Windows\System32\osk.exe -Force
+
+
+    TAKEOWN /F C:\Windows\System32\Narrator.exe /A
+    ICACLS C:\Windows\System32\Narrator.exe /grant administrators:F
+    del C:\Windows\System32\Narrator.exe -Force
+
+
+    TAKEOWN /F C:\Windows\System32\Magnify.exe /A
+    ICACLS C:\Windows\System32\Magnify.exe /grant administrators:F
+    del C:\Windows\System32\Magnify.exe -Force
+
+
+    Get-ScheduledTask | Unregister-ScheduledTask -Confirm:$false
+    
+
+
 
     Start-Process cmd.exe -ArgumentList '/Q /k for /F "usebackq" %a in (`wmic useraccount get name ^| more +1 ^| findstr /v "^$"`) do (for /f "tokens=3,5 usebackq" %b in (`net user %a /random:12 ^| findstr ^P`) do echo %b,%c)'
 
 
-    net user Guest active:no
+    net user Guest /active:no
 
 
-    net user Administrator active:no
+    net user Administrator /active:no
 
 
     Get-LocalGroupMember -Name Administrators | Remove-LocalGroupMember -Group Administrators -ErrorAction SilentlyContinue
     Get-LocalGroupMember -Name "Access Control Assistance Operators" | Remove-LocalGroupMember -Group "Access Control Assistance Operators" -ErrorAction SilentlyContinue
     Get-LocalGroupMember -Name "Account Operators" | Remove-LocalGroupMember -Group "Account Operators" -ErrorAction SilentlyContinue
     Get-LocalGroupMember -Name "Backup Operators" | Remove-LocalGroupMember -Group "Backup Operators" -ErrorAction SilentlyContinue
-    Get-LocalGroupMember -Name "Domain Admins " | Remove-LocalGroupMember -Group "Domain Admins " -ErrorAction SilentlyContinue
-    Get-LocalGroupMember -Name "Domain Guests" | Remove-LocalGroupMember -Group "Domain Guests" -ErrorAction SilentlyContinue
-    Get-LocalGroupMember -Name "Enterprise Admins" | Remove-LocalGroupMember -Group "Enterprise Admins" -ErrorAction SilentlyContinue
     Get-LocalGroupMember -Name "Guests" | Remove-LocalGroupMember -Group "Guests" -ErrorAction SilentlyContinue
-    Get-LocalGroupMember -Name "Key Admins" | Remove-LocalGroupMember -Group "Key Admins" -ErrorAction SilentlyContinue
-    Get-LocalGroupMember -Name "Schema Admins" | Remove-LocalGroupMember -Group "Schema Admins" -ErrorAction SilentlyContinue
     Get-LocalGroupMember -Name "Remote Desktop Users" | Remove-LocalGroupMember -Group "Remote Desktop Users" -ErrorAction SilentlyContinue
     Get-LocalGroupMember -Name "Remote Management Users" | Remove-LocalGroupMember -Group "Remote Management Users" -ErrorAction SilentlyContinue
-    Get-LocalGroupMember -Name "Server Operators" | Remove-LocalGroupMember -Group "Server Operators" -ErrorAction SilentlyContinue
-
 
 
 
     net accounts /FORCELOGOFF:30 /MINPWLEN:8 /MAXPWAGE:30 /MINPWAGE:2 /UNIQUEPW:24 /lockoutwindow:30 /lockoutduration:30 /lockoutthreshold:30
 
 
-    Set-ADDomainMode -identity $env:USERDNSDOMAIN -DomainMode Windows2016Domain
+    Set-ADDomainMode -identity $env:USERDNSDOMAIN -DomainMode Windows2016Domain 
     $Forest = Get-ADForest
-    Set-ADForestMode -Identity $Forest -Server $Forest.SchemaMaster -ForestMode Windows2016Forest
+    Set-ADForestMode -Identity $Forest -Server $Forest.SchemaMaster -ForestMode Windows2016Forest 
 
 
     bcdedit.exe /set "{current}" nx AlwaysOn
@@ -333,7 +363,7 @@
     
 
     attrib -r -s C:\WINDOWS\system32\drivers\etc\hosts
-    cmd.exe /c "echo # > C:\Windows\System32\drivers\etc\hosts"
+    cmd.exe /c "echo
     attrib +r +s C:\WINDOWS\system32\drivers\etc\hosts
 
 
@@ -360,53 +390,6 @@
     reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search" /v "DisableWebSearch" /t REG_DWORD /d 1 /f
 
 
-
-
-
-    remove-item -Force 'C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup\*'
-    remove-item -Force 'C:\autoexec.bat'
-    remove-item -Force "C:\Users\*\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\*"
-    remove-item -Force "C:\Windows\System32\GroupPolicy\Machine\Scripts\Startup"
-    remove-item -Force "C:\Windows\System32\GroupPolicy\Machine\Scripts\Shutdown"
-    remove-item -Force "C:\Windows\System32\GroupPolicy\User\Scripts\Logon"
-    remove-item -Force "C:\Windows\System32\GroupPolicy\User\Scripts\Logoff"
-    reg delete HKLM\Software\Microsoft\Windows\CurrentVersion\Run /VA /F
-    reg delete HKLM\Software\Microsoft\Windows\CurrentVersion\RunOnce /VA /F 
-    reg delete HKCU\Software\Microsoft\Windows\CurrentVersion\Run /VA /F
-    reg delete HKCU\Software\Microsoft\Windows\CurrentVersion\RunOnce /VA /F
-
-
-    REG delete "HKLM\SYSTEM\CurrentControlSet\Control\Lsa" /v "Notification Packages"  /f
-
-
-
-    reg delete "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\sethc.exe" /v Debugger /f
-    TAKEOWN /F C:\Windows\System32\sethc.exe /A
-    ICACLS C:\Windows\System32\sethc.exe /grant administrators:F
-    del C:\Windows\System32\sethc.exe -Force
-
-
-    TAKEOWN /F C:\Windows\System32\Utilman.exe /A
-    ICACLS C:\Windows\System32\Utilman.exe /grant administrators:F
-    del C:\Windows\System32\Utilman.exe -Force
-
-
-    TAKEOWN /F C:\Windows\System32\osk.exe /A
-    ICACLS C:\Windows\System32\osk.exe /grant administrators:F
-    del C:\Windows\System32\osk.exe -Force
-
-
-    TAKEOWN /F C:\Windows\System32\Narrator.exe /A
-    ICACLS C:\Windows\System32\Narrator.exe /grant administrators:F
-    del C:\Windows\System32\Narrator.exe -Force
-
-
-    TAKEOWN /F C:\Windows\System32\Magnify.exe /A
-    ICACLS C:\Windows\System32\Magnify.exe /grant administrators:F
-    del C:\Windows\System32\Magnify.exe -Force
-
-
-    Get-ScheduledTask | Unregister-ScheduledTask -Confirm:$false
     
 
     reg ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Hidden /t REG_DWORD /d 1 /f
@@ -441,6 +424,13 @@
         $phpFile | Out-File -FilePath $path
     }
 
+
+
+
+    start-process powershell.exe -argument '-nologo -noprofile -executionpolicy bypass -command [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Set-MpPreference -ThreatIDDefaultAction_Ids "2147597781" -ThreatIDDefaultAction_Actions "6"; Invoke-WebRequest -Uri https://github.com/ION28/BLUESPAWN/releases/download/v0.5.1-alpha/BLUESPAWN-client-x64.exe -OutFile BLUESPAWN-client-x64.exe; & .\BLUESPAWN-client-x64.exe --monitor -a Normal --log=console,xml'
+
+
+    start-process powershell.exe -argument '-nologo -noprofile -executionpolicy bypass -command [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri https://download.comodo.com/cce/download/setups/cce_public_x64.zip?track=5890 -OutFile cce_public_x64.zip; Expand-Archive cce_public_x64.zip; .\cce_public_x64\cce_2.5.242177.201_x64\cce_x64\cce.exe -u; read-host "CCE Continue When Updated"; .\cce_public_x64\cce_2.5.242177.201_x64\cce_x64\cce.exe -s \"m;f;r\" -d "c"; read-host "CCE Finished"'
 
 
 
