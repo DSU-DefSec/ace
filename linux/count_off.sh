@@ -1,4 +1,3 @@
 # Count off!
 
-whoami
-echo $HOSTNAME
+echo "`whoami`:$HOSTNAME"
