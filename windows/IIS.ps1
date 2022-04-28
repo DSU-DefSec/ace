@@ -1,5 +1,7 @@
-IIS PowerShell
----------------------------------------------------------------------------------------------------------------------------------------
+#IIS PowerShell
+#---------------------------------------------------------------------------------------------------------------------------------------
+Import Web-Administration
+Import IIS-Administration
 #Set application privelages to minimum
 Foreach($item in (Get-ChildItem IIS:\AppPools)) { $tempPath="IIS:\AppPools\"; $tempPath+=$item.name; Set-ItemProperty -Path $tempPath -name processModel.identityType -value 4}
 #Disable Directory Browse
