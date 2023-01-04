@@ -1,34 +1,6 @@
 
-    $DCIP = Read-Host "Please enter the IP of the Domain Controller 1 (Hit enter if DC1)" 
-    
-
 
     net start mpssvc
-
-
-    netsh advfirewall reset
-    Disable-NetFirewallRule;
-
-
-    New-NetFirewallRule -Dis "Allow TCP communication to DC" -Dir Outbound -RemotePort 389,636,3268,3269,88,53,445,135,5722,464,9389,139,49152-65535 -Prot TCP -Act Allow -RemoteAddress $DCIP
-    New-NetFirewallRule -Dis "Allow UDP communication to DC" -Dir Outbound -RemotePort 389,88,53,445,123,464,138,137,49152-65535 -Prot UDP -Act Allow -RemoteAddress $DCIP
-
-    New-NetFirewallRule -Dis "Allow TCP communication from DC" -Dir Inbound -LocalPort 389,636,3268,3269,88,53,445,135,5722,464,9389,139,49152-65535 -Prot TCP -Act Allow -RemoteAddress $DCIP
-    New-NetFirewallRule -Dis "Allow UDP communication from DC" -Dir Inbound -LocalPort 389,88,53,445,123,464,138,137,49152-65535 -Prot UDP -Act Allow -RemoteAddress $DCIP
-
-
-    if ($null -ne (Get-NetIPAddress | Where-Object {$_.IPAddress -eq "$DCIP"})) {
-        New-NetFirewallRule -Dis "Allow TCP communication to client" -Dir Outbound -RemotePort 389,636,3268,3269,88,53,445,135,5722,464,9389,139,49152-65535 -Prot TCP -Act Allow -RemoteAddress "$DCIP/24"
-        New-NetFirewallRule -Dis "Allow UDP communication to client" -Dir Outbound -RemotePort 389,88,53,445,123,464,138,137,49152-65535 -Prot UDP -Act Allow -RemoteAddress "$DCIP/24"
-    }
-
-
-    New-NetFirewallRule -Dis "Block Local Services" -Dir Outbound -RemotePort 80,443,22,21,20,110,995 -Prot TCP -Act Block -RemoteAddress "$DCIP/24" 
-    New-NetFirewallRule -Dis "Allow Remote Services" -Dir Outbound -RemotePort 80,443,22,21,20,110,995 -Prot TCP -Act Allow
-
-
-    New-NetFirewallRule -Dis "Inbound Services" -Dir Inbound -LocalPort 1-10000 -Prot TCP -Act Allow
-
 
     reg add HKLM\SOFTWARE\Policies\Microsoft\WindowsFirewall\PublicProfile /V EnableFirewall /T REG_DWORD /D 1 /F 
     reg add HKLM\SOFTWARE\Policies\Microsoft\WindowsFirewall\PrivateProfile /V EnableFirewall /T REG_DWORD /D 1 /F 
@@ -243,25 +215,7 @@
     Get-ScheduledTask | Unregister-ScheduledTask -Confirm:$false
     
 
-
-
-    Start-Process cmd.exe -ArgumentList '/Q /k for /F "usebackq" %a in (`wmic useraccount get name ^| more +1 ^| findstr /v "^$"`) do (for /f "tokens=3,5 usebackq" %b in (`net user %a /random:12 ^| findstr ^P`) do echo %b,%c)'
-
-
     net user Guest /active:no
-
-
-    net user Administrator /active:no
-
-
-    Get-LocalGroupMember -Name Administrators | Remove-LocalGroupMember -Group Administrators -ErrorAction SilentlyContinue
-    Get-LocalGroupMember -Name "Access Control Assistance Operators" | Remove-LocalGroupMember -Group "Access Control Assistance Operators" -ErrorAction SilentlyContinue
-    Get-LocalGroupMember -Name "Account Operators" | Remove-LocalGroupMember -Group "Account Operators" -ErrorAction SilentlyContinue
-    Get-LocalGroupMember -Name "Backup Operators" | Remove-LocalGroupMember -Group "Backup Operators" -ErrorAction SilentlyContinue
-    Get-LocalGroupMember -Name "Guests" | Remove-LocalGroupMember -Group "Guests" -ErrorAction SilentlyContinue
-    Get-LocalGroupMember -Name "Remote Desktop Users" | Remove-LocalGroupMember -Group "Remote Desktop Users" -ErrorAction SilentlyContinue
-    Get-LocalGroupMember -Name "Remote Management Users" | Remove-LocalGroupMember -Group "Remote Management Users" -ErrorAction SilentlyContinue
-
 
 
     net accounts /FORCELOGOFF:30 /MINPWLEN:8 /MAXPWAGE:30 /MINPWAGE:2 /UNIQUEPW:24 /lockoutwindow:30 /lockoutduration:30 /lockoutthreshold:30
@@ -361,10 +315,6 @@
 
     ipconfig /flushdns
     
-
-    attrib -r -s C:\WINDOWS\system32\drivers\etc\hosts
-    cmd.exe /c "echo
-    attrib +r +s C:\WINDOWS\system32\drivers\etc\hosts
 
 
     reg ADD HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v EnableLUA /t REG_DWORD /d 1 /f
