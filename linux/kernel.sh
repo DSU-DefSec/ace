@@ -17,6 +17,11 @@ echo "kernel.yama.ptrace_scope = 2" >> $file
 echo "fs.protected_hardlinks = 1" >> $file
 echo "fs.protected_symlinks = 1" >> $file
 echo "fs.suid_dumpable = 0" >> $file
+echo "kernel.unprivileged_userns_clone = 0" >> $file
+echo "fs.protected_fifos = 2" >> $file
+echo "fs.protected_regular = 2" >> $file
+echo "kernel.kptr_restrict = 2" >> $file
+
 sysctl -p >/dev/null
 
 # disable kernel module insertion? (risky)
