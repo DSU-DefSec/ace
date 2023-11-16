@@ -1,0 +1,10 @@
+enabled_modules:
+  - "files_to_backup"
+  - "root_password_changes"
+  - "user_password_changes"
+  - "audit_users"
+files_to_backup:
+  - "/etc/shadow"
+  - "/etc/passwd"
+  - "/etc/gshadow"
+  - "/etc/group"
