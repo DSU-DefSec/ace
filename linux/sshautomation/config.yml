@@ -3,6 +3,12 @@ enabled_modules:
   - "root_password_changes"
   - "user_password_changes"
   - "audit_users"
+# - enumerate services
+# - change sql pass
+# - change ssh settings
+# - firewall
+# - setup PHP
+# - setup logging
 files_to_backup:
   - "/etc/shadow"
   - "/etc/passwd"
