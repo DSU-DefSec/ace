@@ -9,8 +9,27 @@ enabled_modules:
 # - firewall
 # - setup PHP
 # - setup logging
+# - Execute bash script
 files_to_backup:
   - "/etc/shadow"
   - "/etc/passwd"
   - "/etc/gshadow"
   - "/etc/group"
+#Might have to enumerate cuz of packages changes
+packages_to_install:
+  - "auditd"
+  - "rsyslog"
+packages_to_remvoe:
+  - "nc"
+php_settings:
+  disable_functions: "shell_exec, exec, passthru, proc_open, popen, system, phpinfo"
+  max_execution_time: "3"
+  register_globals: "off"
+  magic_quotes_gpc: "on"
+  allow_url_fopen: "off"
+  allow_url_include: "off"
+  display_errors: "off"
+  short_open_tag: "off"
+  session.cookie_httponly: "1"
+  session.use_only_cookies: "1"
+  session.cookie_secure: "1"
