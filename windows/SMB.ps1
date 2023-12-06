@@ -1,13 +1,15 @@
-# ---------- SMB ----------
+Write-Host "---------- SMB ----------" -ForegroundColor Green
 
 # Clean slate
 $Error.Clear()
 $ErrorActionPreference = "Continue"
 
+$POSHversion = $PSVersionTable.PSVersion.Major -ge 3
+
 # Get and display computer system information
 Get-WmiObject -Namespace root\cimv2 -Class Win32_ComputerSystem |
     Select-Object Name, Domain |
-    Format-Table -AutoSize
+    Format-Table -AutoSize:$POSHversion
 
 # Get and display network adapter information
 Get-WmiObject Win32_NetworkAdapterConfiguration |
@@ -17,13 +19,13 @@ Get-WmiObject Win32_NetworkAdapterConfiguration |
             ServiceName = $_.ServiceName
             IPAddress = $_.IPAddress -join ', '
         }
-    } | Format-Table -AutoSize
+    } | Format-Table -AutoSize:$POSHversion
 
 
     Get-Service |
     Where-Object { $_.DisplayName -like "*SMB*" -or $_.ServiceName -like "*SMB*" } |
     Select-Object DisplayName, ServiceName, Status |
-    Format-Table -AutoSize
+    Format-Table -AutoSize:$POSHversion
 
 
 # Disable SMB1
@@ -47,3 +49,7 @@ reg add "HKLM\System\CurrentControlSet\Services\LanmanServer\Parameters" /v Reje
 reg add "HKLM\System\CurrentControlSet\Services\LanmanServer\Parameters" /v AnnounceServer /t REG_DWORD /d 0 /f | Out-Null
 net share C$ /delete | Out-Null
 net share ADMIN$ /delete | Out-Null
+
+
+
+Write-Host "$Env:ComputerName SMB secured." -ForegroundColor Green
