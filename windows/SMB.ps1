@@ -1,8 +1,7 @@
-Write-Host "---------- SMB ----------" -ForegroundColor Green
-
-# Clean slate
 $Error.Clear()
 $ErrorActionPreference = "Continue"
+
+Write-Host "---------- SMB ----------" -ForegroundColor Green
 
 $POSHversion = $PSVersionTable.PSVersion.Major -ge 3
 
@@ -13,13 +12,13 @@ Get-WmiObject -Namespace root\cimv2 -Class Win32_ComputerSystem |
 
 # Get and display network adapter information
 Get-WmiObject Win32_NetworkAdapterConfiguration |
-    Where-Object { $_.IPAddress -ne $null } |
-    ForEach-Object {
-        [PSCustomObject]@{
-            ServiceName = $_.ServiceName
-            IPAddress = $_.IPAddress -join ', '
-        }
-    } | Format-Table -AutoSize:$POSHversion
+Where-Object { $_.IPAddress -ne $null -and $_.IPEnabled -eq $true -and $_.IPAddress -notlike 'fe80::*'} |
+ForEach-Object {
+    [PSCustomObject]@{
+        ServiceName = $_.ServiceName
+        IPAddress   = $_.IPAddress -join ', '
+    }
+} | Format-Table -AutoSize:$POSHversion
 
 
     Get-Service |
