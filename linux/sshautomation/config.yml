@@ -3,6 +3,11 @@ files_to_backup:
   - "/etc/passwd"
   - "/etc/gshadow"
   - "/etc/group"
+files_to_fix_permissions:
+  - "/etc/passwd"
+  - "/etc/shadow"
+  - "/etc/gshadow"
+  - "/etc/group"
 #Might have to enumerate cuz of packages changes
 packages_to_install:
   - "auditd"

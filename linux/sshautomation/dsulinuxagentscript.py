@@ -1,20 +1,12 @@
 import os
 import paramiko
 import yaml
-
+from wrapper import *
 from datetime import datetime
 boxes = {}
 config_path = 'config.yml'
 with open(config_path, 'r') as file:
         data = yaml.safe_load(file)
-
-def log_command_execution(command, result, box):
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    with open('Command_Log.txt', 'a') as log_file:
-        log_file.write(f"[{timestamp}] Box: {box}\n")
-        log_file.write(f"Command: {command}\n")
-        log_file.write(f"Result:\n{result}\n")
-        log_file.write("=" * 40 + "\n\n")
 
 def Root_Password_Changes(ssh, box):
     root_password = boxes[box][1]
@@ -90,6 +82,11 @@ def change_sysctl_settings(ssh,box):
         _, stdout, _ = ssh.exec_command(command)
         result = stdout.read().decode('utf-8').strip()
         log_command_execution(command, result, box)
+        command="sysctl -p"
+        _, stdout, _ = ssh.exec_command(command)
+        result = stdout.read().decode('utf-8').strip()
+        log_command_execution(command, result, box)
+
 
 
 def run_single_command(ssh,box,cmd):
@@ -104,8 +101,19 @@ def execute_BashScript(ssh, script, box):
             result = stdout.read().decode('utf-8').strip()
             log_command_execution(line, result, box)
 
+def enumerate(ssh,box):
+    #Likely we just want to use the cpp enumeration script
+    print("enum")
 
-functions = [log_command_execution,Root_Password_Changes,User_Password_Changes,files_to_backup,firewall_stuff,audit_Users,execute_BashScript,change_SSH_Settings,modify_php_settings,run_single_command,change_sysctl_settings]
+def fix_pam(ssh,box):
+    #Possible SCP from a local baseline to server
+    print("pam")
+
+
+
+
+
+functions = [Root_Password_Changes,User_Password_Changes,files_to_backup,firewall_stuff,audit_Users,execute_BashScript,change_SSH_Settings,modify_php_settings,run_single_command,change_sysctl_settings]
 def exec_function(function_number,arg1,arg2,arg3):
      for line in open("boxes.conf"):
         if "#" not in line:
