@@ -6,8 +6,8 @@ echo ---------- SMB Services ----------
 :: Clean slate
 set "ErrorActionPreference=Continue"
 
-echo Name: %Name%
-echo Domain: %Domain%
+echo Name: %COMPUTERNAME%
+
 
 :: Display SMB-related services
 for /f "tokens=*" %%A in ('sc query state^= all ^| find "SERVICE_NAME" ^| findstr /i "SMB" 2^>nul') do (
