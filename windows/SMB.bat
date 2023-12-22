@@ -1,41 +1,30 @@
 @echo off
 setlocal enabledelayedexpansion
 
-echo ---------- SMB ----------
+echo ---------- SMB Services ----------
 
 :: Clean slate
 set "ErrorActionPreference=Continue"
 
-:: Function to suppress output
-:quiet
->nul 2>&1 (
-    set /p dummyVar=""
-)
-
-:: Get and display computer system information
-for /f "tokens=*" %%A in ('wmic computersystem get Name^,Domain /value 2^>nul') do (
-    set "%%A"
-)
 echo Name: %Name%
 echo Domain: %Domain%
 
-:: Get and display network adapter information
-for /f "tokens=*" %%A in ('wmic nicconfig where "IPAddress is not null" get ServiceName^,IPAddress /value 2^>nul') do (
-    set "%%A"
-    echo ServiceName: !ServiceName!
-    echo IPAddress: !IPAddress!
-)
-
-:: Get and display SMB-related services
+:: Display SMB-related services
 for /f "tokens=*" %%A in ('sc query state^= all ^| find "SERVICE_NAME" ^| findstr /i "SMB" 2^>nul') do (
+    set "SMB_Found=true"
     set "%%A"
     echo DisplayName: !DisplayName!
     echo ServiceName: !SERVICE_NAME!
     echo Status: !STATE!
 )
 
-echo %COMPUTERNAME% SMB secured.
+if not defined SMB_Found (
+    echo No SMB-related services found.
+)
+
 echo.
+echo:
+echo ---------- SMB Securing ----------
 
 :: Disable SMB1
 call :quiet reg add "HKLM\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters" /v SMB1 /t REG_DWORD /d 0 /f
@@ -60,6 +49,13 @@ call :quiet net share C$ /delete
 call :quiet net share ADMIN$ /delete
 
 echo %COMPUTERNAME% SMB secured.
+
 echo.
 endlocal
 exit /b
+
+:: Function to suppress output
+:quiet
+>nul 2>&1 (
+    set /p dummyVar=""
+)
