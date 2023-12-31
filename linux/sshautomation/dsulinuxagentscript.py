@@ -11,42 +11,34 @@ with open(config_path, 'r') as file:
 def Root_Password_Changes(ssh, box):
     root_password = boxes[box][1]
     command = f'passwd root {root_password}'
-    _, stdout, _ = ssh.exec_command(command)
-    result = stdout.read().decode('utf-8').strip()
-    log_command_execution(command, result, box)
+    run_ssh_command(command,box)
 
 def User_Password_Changes(ssh, box):
     user_password = boxes[box][2]
     command = f'for u in $(cat /etc/passwd | grep -v ^root: | cut -d: -f1); do echo "$u:{user_password}" | chpasswd; done'
-    _, stdout, _ = ssh.exec_command(command)
-    result = stdout.read().decode('utf-8').strip()
-    log_command_execution(command, result, box)
+    run_ssh_command(command,box)
 
 
 def files_to_backup(ssh, box):
     files_to_backup_entry = data.get('files_to_backup', [])
     for file in files_to_backup_entry:
         command = f'cp {file} /root/{file}'
-        _, stdout, _ = ssh.exec_command(command)
-        result = stdout.read().decode('utf-8').strip()
-        log_command_execution(command, result, box)
+        run_ssh_command(command,box)
 
 
 def firewall_stuff(ssh, ports, box):
     # Implement this here
     command = "Your Firewall Command Here"
-    _, stdout, _ = ssh.exec_command(command)
-    result = stdout.read().decode('utf-8').strip()
-    log_command_execution(command, result, box)
+    run_ssh_command(command,box)
 
 def audit_Users(ssh, box):
-    _, stdout, _ = ssh.exec_command("grep -E '/bash$|/sh$' /etc/passwd")
+    command = "grep -E '/bash$|/sh$' /etc/passwd"
+    stdout = run_ssh_command(command,box,False)
     users_data = stdout.read().decode('utf-8').strip()
     section_header = f"=== {box} ==="
     data_to_write = f"{section_header}\n{users_data}\n\n"
     with open('Audited_Users.txt', 'a') as file:
         file.write(data_to_write)
-    log_command_execution("Audit Users", users_data, box)
 
 
 
@@ -62,45 +54,43 @@ def change_SSH_Settings(ssh,box):
 ]
     
     for command in ssh_commands:
-        _, stdout, _ = ssh.exec_command(command)
-        result = stdout.read().decode('utf-8').strip()
-        log_command_execution(command, result, box)
+        run_ssh_command(command,box)
 
 
 def modify_php_settings(ssh, php_config_path, settings, box):
     php_settings_entry = data.get('php_settings', {})
     for setting, value in php_settings_entry.items():
         command = f"echo '{setting} = {value}' >> {php_config_path}"
-        _, stdout, _ = ssh.exec_command(command)
-        result = stdout.read().decode('utf-8').strip()
-        log_command_execution(command, result, box)
+        run_ssh_command(command,box)
 
 def change_sysctl_settings(ssh,box):
     sysctl_settings_entry = data.get('sysctl_settings', {})
     for setting, value in sysctl_settings_entry.items():
         command = f"echo '{setting} = {value}' >> /etc/sysctl.d/99-sysctl.conf"
-        _, stdout, _ = ssh.exec_command(command)
-        result = stdout.read().decode('utf-8').strip()
-        log_command_execution(command, result, box)
+        run_ssh_command(command,box)
         command="sysctl -p"
-        _, stdout, _ = ssh.exec_command(command)
-        result = stdout.read().decode('utf-8').strip()
-        log_command_execution(command, result, box)
+        run_ssh_command(command,box)
 
 
 
 def run_single_command(ssh,box,cmd):
-    _, stdout, _ = ssh.exec_command(cmd)
-    result = stdout.read().decode('utf-8').strip()
-    log_command_execution(cmd, result, box)
+    run_ssh_command(cmd,box)
 
 def execute_BashScript(ssh, script, box):
-    with open(script, 'r') as bash_script:
-        for line in bash_script:
-            _, stdout, _ = ssh.exec_command(line)
-            result = stdout.read().decode('utf-8').strip()
-            log_command_execution(line, result, box)
+    try:
+        with open(script, 'r') as bash_script:
+            # Read the entire script into a string
+            script_content = bash_script.read()
 
+            # Execute the entire script
+            _, stdout, _ = ssh.exec_command(script_content)
+            result = stdout.read().decode('utf-8').strip()
+
+            # Log the command execution
+            log_command_execution(script_content, result, box)
+
+    except Exception as e:
+        print(f"Error: {e}")
 def enumerate(ssh,box):
     #Likely we just want to use the cpp enumeration script
     print("enum")
@@ -109,7 +99,9 @@ def fix_pam(ssh,box):
     #Possible SCP from a local baseline to server
     print("pam")
 
-
+def generate_PCR(ssh,box):
+    #Either take it from audited user or run another audit user command?
+    print("pcr")
 
 
 

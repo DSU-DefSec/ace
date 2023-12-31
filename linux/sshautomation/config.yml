@@ -4,15 +4,17 @@ files_to_backup:
   - "/etc/gshadow"
   - "/etc/group"
 files_to_fix_permissions:
-  - "/etc/passwd"
-  - "/etc/shadow"
-  - "/etc/gshadow"
-  - "/etc/group"
+  - "/etc/passwd","640"
+  - "/etc/shadow","640"
+  - "/etc/gshadow","640"
+  - "/etc/group","640"
+  - "/usr/bin/pkexec","755"
+  
 #Might have to enumerate cuz of packages changes
 packages_to_install:
   - "auditd"
   - "rsyslog"
-packages_to_remvoe:
+packages_to_remove:
   - "nc"
 php_settings:
   disable_functions: "shell_exec, exec, passthru, proc_open, popen, system, phpinfo"
