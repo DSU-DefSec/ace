@@ -26,7 +26,9 @@ function generateInputList(node) {
     const options = Array.from(
         node.querySelectorAll("input[type=file]")
     ).filter(e => e.id).map(e => ({
-        name: document.querySelector(`label[for=${JSON.stringify(e.id)}]`).textContent || e.id,
+        name: (
+            document.querySelector(`label[for=${JSON.stringify(e.id)}]`) ||
+            {textContent: e.id}).textContent,
         id: e.id
     }));
 
