@@ -78,7 +78,7 @@ class XorshiftGenerator():
             ret.append(i)
             ret.append(self.choice(delimiters))
         return ''.join(ret[0:len(ret) - 1])
-  
+
     def genWord(self, length=5):
         ret = []
         for i in range(length):
@@ -129,4 +129,3 @@ if __name__ == "__main__":
     else:
         print(f"USAGE: {argv[0]} [USERS_PATH]")
 
-                

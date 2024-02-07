@@ -151,6 +151,7 @@ class XorshiftGenerator {
   const downloadLink                   = document.getElementById("downloadLink");
   const userListFileName               = document.getElementById("userListFileName");
   const clipboardClearButton           = document.getElementById("clipboardClearButton");
+  const boxNameInput = document.getElementById("boxNameInput")
 
   async function passwordFromForm() {
     if(seedInput.value.length == 0) {
@@ -197,7 +198,7 @@ class XorshiftGenerator {
     const promise = new Promise((resolve, reject) => {
       let i = 0;
       const genPassword = function() {
-        const prng = new XorshiftGenerator(hex2bigint(sha256(seedInput.value + names[i])));
+        const prng = new XorshiftGenerator(hex2bigint(sha256(seedInput.value + boxNameInput.value + names[i])));
         prng.advance(parseInt(roundsInput.value));
         ret.push([names[i], prng.genPassword()]);
         setProgressBar(parseInt(i) + 1, names.length);
