@@ -49,7 +49,7 @@ $PolicyStore = "$domain\Default Domain Policy"
 $GPOSession = Open-NetGPO -PolicyStore $PolicyStore
 
 #Set Firewall Rules
-New-NetFirewallRule -GPOSession $GPOSession -DisplayName "Ping In" -Profile Any -Direction Inbound -Protocol ICMP -RemoteAddress 10.120.0.0/16 -Action Allow
+New-NetFirewallRule -GPOSession $GPOSession -DisplayName "Ping In" -Profile Any -Direction Inbound -Protocol ICMPv4 -RemoteAddress 10.120.0.0/16 -Action Allow
 New-NetFirewallRule -GPOSession $GPOSession -DisplayName "CCS Out" -Profile Any -Direction Outbound -Protocol TCP -RemotePort 80,443 -RemoteAddress 10.120.0.111 -Action Allow
 New-NetFirewallRule -GPOSession $GPOSession -DisplayName "DNS Out" -Profile Any -Direction Outbound -Protocol UDP -RemotePort 53 -RemoteAddress dns -Action Allow
 
