@@ -45,7 +45,7 @@ Foreach ($Computer in $DComps) {
     }
 }
 
-Write-Host $serverCount"servers and"$clientCount"clients moved successfully."
+Write-Host "$serverCount servers and $clientCount clients moved successfully."
 #Create Group Policy Objects and Link to new OUs
 New-GPO -Name "Domain Computers Policy" | New-GPLink -Target "OU=Domain Computers$domainPathStr" -LinkEnabled Yes | Out-Null
 New-GPO -Name "Domain Servers Policy" | New-GPLink -Target "OU=Domain Servers,OU=Domain Computers$domainPathStr" -LinkEnabled Yes | Out-Null
