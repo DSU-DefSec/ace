@@ -58,7 +58,7 @@ $PolicyStore = "$domain\Default Domain Policy"
 
 #Set Firewall Rules
 New-NetFirewallRule -PolicyStore $PolicyStore -DisplayName "Ping In" -Profile Any -Direction Inbound -Protocol ICMPv4 -RemoteAddress 10.120.0.0/16 -Action Allow | Out-Null
-New-NetFirewallRule -PolicyStore $PolicyStore -DisplayName "CCS Out" -Profile Any -Direction Outbound -Protocol TCP -RemotePort 80,443 -RemoteAddress 10.120.0.111 -Action Allow | Out-Null
+New-NetFirewallRule -PolicyStore $PolicyStore -DisplayName "CCS Out" -Profile Any -Direction Outbound -Protocol TCP -RemotePort 80,443 -RemoteAddress 10.120.0.111 -Program "C:\CCS.exe" -Action Allow | Out-Null
 New-NetFirewallRule -PolicyStore $PolicyStore -DisplayName "DNS Out" -Profile Any -Direction Outbound -Protocol UDP -RemotePort 53 -RemoteAddress dns -Action Allow | Out-Null
 
 Write-Host "All-Domain Firewall Rules Done"
