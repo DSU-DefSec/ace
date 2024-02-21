@@ -86,7 +86,7 @@ New-NetFirewallRule -GPOSession $GPOSession -DisplayName "Kerberos TCP to DC" -P
 New-NetFirewallRule -GPOSession $GPOSession -DisplayName "Kerberos UDP to DC" -Profile Any -Direction Outbound -Protocol UDP -RemotePort 88 -RemoteAddress $DCIP -Action Allow
 New-NetFirewallRule -GPOSession $GPOSession -DisplayName "Kerberos UDP from DC" -Profile Any -Direction Inbound -Protocol UDP -LocalPort 88 -RemoteAddress $DCIP -Action Allow
 New-NetFirewallRule -GPOSession $GPOSession -DisplayName "LDAP TCP to DC" -Profile Any -Direction Outbound -Protocol TCP -RemotePort 389 -RemoteAddress $DCIP -Action Allow
-New-NetFirewallRule -GPOSession $GPOSession -DisplayName "LDAP UDP to DC" -Profile Any -Direction Outbound -Protocol UDP RemotePort 389 -RemoteAddress $DCIP -Action Allow
+New-NetFirewallRule -GPOSession $GPOSession -DisplayName "LDAP UDP to DC" -Profile Any -Direction Outbound -Protocol UDP -RemotePort 389 -RemoteAddress $DCIP -Action Allow
 New-NetFirewallRule -GPOSession $GPOSession -DisplayName "SMB to DC" -Profile Any -Direction Outbound -Protocol TCP -RemotePort 445 -RemoteAddress $DCIP -Action Allow
 New-NetFirewallRule -GPOSession $GPOSession -DisplayName "SMB from DC" -Profile Any -Direction Inbound -Protocol TCP -LocalPort 445 -RemoteAddress $DCIP -Action Allow
 New-NetFirewallRule -GPOSession $GPOSession -DisplayName "RPC Map/WMI to DC" -Profile Any -Direction Outbound -Protocol TCP -RemotePort 135 -RemoteAddress $DCIP -Action Allow
