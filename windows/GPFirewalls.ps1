@@ -40,9 +40,9 @@ Foreach ($Computer in $DComps) {
 }
 
 #Create Group Policy Objects and Link to new OUs
-New-GPO -Name "Domain Computers Policy" | New-GPLink -Target "OU=Domain Computers$domainPathStr" -LinkEnabled Yes
-New-GPO -Name "Domain Servers Policy" | New-GPLink -Target "OU=Domain Servers,OU=Domain Computers$domainPathStr" -LinkEnabled Yes
-New-GPO -Name "Domain Clients Policy" | New-GPLink -Target "OU=Domain Clients,OU=Domain Computers$domainPathStr" -LinkEnabled Yes
+New-GPO -Name "Domain Computers Policy" | New-GPLink -Target "OU=Domain Computers$domainPathStr" -LinkEnabled Yes | Out-Null
+New-GPO -Name "Domain Servers Policy" | New-GPLink -Target "OU=Domain Servers,OU=Domain Computers$domainPathStr" -LinkEnabled Yes | Out-Null
+New-GPO -Name "Domain Clients Policy" | New-GPLink -Target "OU=Domain Clients,OU=Domain Computers$domainPathStr" -LinkEnabled Yes | Out-Null
 
 #Set Default Domain Group Policy
 $PolicyStore = "$domain\Default Domain Policy"
@@ -76,7 +76,7 @@ New-NetFirewallRule -PolicyStore $PolicyStore -DisplayName "TCP DC File Replicat
 New-NetFirewallRule -PolicyStore $PolicyStore -DisplayName "TCP DC File Replication Out" -Profile Any -Direction Outbound -Protocol TCP -RemotePort 139 -RemoteAddress $DCIP -Action Allow | Out-Null
 New-NetFirewallRule -PolicyStore $PolicyStore -DisplayName "UDP DC File Replication In" -Profile Any -Direction Inbound -Protocol UDP -LocalPort 138 -RemoteAddress $DCIP -Action Allow | Out-Null
 New-NetFirewallRule -PolicyStore $PolicyStore -DisplayName "UDP DC File Replication Out" -Profile Any -Direction Outbound -Protocol UDP -RemotePort 138 -RemoteAddress $DCIP -Action Allow | Out-Null
-New-NetFirewallRule -PolicyStore $PolicyStore -DisplayName "Web Out" -Direction Outbound -Protocol TCP -RemotePort 80,443 -Program "C:\Program Files\Mozilla Firefox\firefox.exe" -Profile Any -Action Allow | Out-Null -Enabled False
+New-NetFirewallRule -PolicyStore $PolicyStore -DisplayName "Web Out" -Direction Outbound -Protocol TCP -RemotePort 80,443 -Program "C:\Program Files\Mozilla Firefox\firefox.exe" -Profile Any -Action Allow -Enabled False | Out-Null
 
 #Set Domain Computers Group Policy
 $PolicyStore = "$domain\Domain Computers Policy"
@@ -96,7 +96,7 @@ New-NetFirewallRule -PolicyStore $PolicyStore -DisplayName "W32Time to DC" -Prof
 $PolicyStore = "$domain\Domain Servers Policy"
 
 New-NetFirewallRule -PolicyStore $PolicyStore -DisplayName "RDP In" -Direction Inbound -Protocol TCP -LocalPort 3389 -Program "C:\Windows\System32\svchost.exe" -Service "termservice" -Profile Any -Action Allow | Out-Null
-New-NetFirewallRule -PolicyStore $PolicyStore -DisplayName "Web Out" -Direction Outbound -Protocol TCP -RemotePort 80,443 -Program "C:\Program Files\Mozilla Firefox\firefox.exe" -Profile Any -Action Allow | Out-Null -Enabled False
+New-NetFirewallRule -PolicyStore $PolicyStore -DisplayName "Web Out" -Direction Outbound -Protocol TCP -RemotePort 80,443 -Program "C:\Program Files\Mozilla Firefox\firefox.exe" -Profile Any -Action Allow  -Enabled False | Out-Null
 
 #Set Domain Clients Group Policy
 $PolicyStore = "$domain\Domain Clients Policy"
