@@ -1,7 +1,4 @@
-$stopWatch = New-Object -TypeName System.Diagnostics.Stopwatch
-$stopWatch.Start()
-
-$format = @("\d{3}[)]?[-| |.]\d{3}[-| |.]\d{4}", "\d{3}[-| |.]\d{2}[-| |.]\d{4}", "\s[A|a]ve[\s|.]", "[A|a]venue", "\s[S|s]t[\s|.]", "[S|s]treet", "\s[B|b]lvd[\s|.]", "[B|b]oulevard", "\s[R|r]d[\s|.]", "[R|r]oad", "\s[D|d]r[\s|.]", "[D|d]rive", "[C|c]ourt", "\s[C|c]t[\s|.]", "[H|h]ighway", "\s[H|h]wy[\s|.]", "[L|l]ane", "[L|l]n[\s|.]", "[W|w]ay", "Interstate")
+$format = @("\d{3}[)]?[-| |.]\d{3}[-| |.]\d{4}", "\d{3}[-| |.]\d{2}[-| |.]\d{4}", "\s[A|a]ve[\s|.]", "[A|a]venue", "\s[S|s]t[\s|.]", "[S|s]treet", "\s[B|b]lvd[\s|.]", "[B|b]oulevard", "\s[R|r]d[\s|.]", "[R|r]oad", "\s[D|d]r[\s|.]", "[D|d]rive", "[C|c]ourt", "\s[C|c]t[\s|.]", "[L|l]ane", "[L|l]n[\s|.]", "[W|w]ay")
 $ErrorActionPreference = "SilentlyContinue"
 
 $os = (Get-CimInstance Win32_OperatingSystem).Version
@@ -43,13 +40,9 @@ foreach ($path in $paths)
    }
    Write-Host "$path Completed." -ForegroundColor Green
 }
-
-$stopWatch.Stop()
-$total = $stopWatch.Elapsed
 $itemCount = $printedFiles.Count
 if ($printedFiles.Count -gt 0) {
     Write-Host "`n`nFound $itemCount PII files in $total" -ForegroundColor Green
  } else {
     Write-Host "`n`nNo PII files found in $total" -ForegroundColor Red
  }
- 
