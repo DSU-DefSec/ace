@@ -16,15 +16,15 @@ api_key=$(curl -s -k -H "Content-Type: application/x-www-form-urlencoded" -X POS
 
 # Output to fw.yml 
 cat > fw.yml <<EOF
-all:
+firewall:
   hosts:
-    firewall:
-      hosts:
-        - ${palo_ip}
-      vars:
-        api_key: ${api_key}
+    ${palo_ip}:
+  vars:
+    ip_address: ${palo_ip}
+    api_key: ${api_key}
 EOF
 
 cat ~/.ssh/id_rsa.pub
+cat fw.yml
 
-sudo ansible-vault encrypt fw.yml
+# sudo ansible-vault encrypt fw.yml
