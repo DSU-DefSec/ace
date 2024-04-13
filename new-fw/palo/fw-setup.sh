@@ -8,7 +8,7 @@ sudo apt install -y cowsay ansible-core python3-pip
 sudo ansible-galaxy collection install paloaltonetworks.panos
 pip install -r requirements.txt
 
-ssh-key-gen -t rsa -b 4096 -C "ansible@localhost" -f ~/.ssh/id_rsa -N ""
+ssh-keygen -t rsa -b 4096 -C "ansible@localhost" -f ~/.ssh/id_rsa -N ""
 
 
 #Line below came from chatgpt
