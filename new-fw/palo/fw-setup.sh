@@ -10,6 +10,7 @@ pip install -r requirements.txt
 
 ssh-key-gen -t rsa -b 4096 -C "ansible@localhost" -f ~/.ssh/id_rsa -N ""
 
+
 #Line below came from chatgpt 😎
 api_key=$(curl -s -k -H "Content-Type: application/x-www-form-urlencoded" -X POST "https://${palo_ip}/api/?type=keygen" -d "user=admin&password=${palo_pw}" | grep -oP '(?<=<key>)[^<]+')
 
@@ -23,5 +24,7 @@ all:
       vars:
         api_key: ${api_key}
 EOF
+
+cat ~/.ssh/id_rsa.pub
 
 sudo ansible-vault encrypt fw.yml
