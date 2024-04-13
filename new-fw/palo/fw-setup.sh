@@ -1,28 +1,25 @@
-# Vars
+#!/usr/bin/env bash 
 read -p "Palo IP: " palo_ip
 read -p "Palo PW: " palo_pw
 
-# get base stuff
-apt update
-apt install -y ansible-core
-apt install -y python3-pip
+sudo apt update
+sudo apt install -y cowsay ansible-core python3-pip
 
-# install specific palo mods
-ansible-galaxy collection install paloaltonetworks.panos
+sudo ansible-galaxy collection install paloaltonetworks.panos
 pip install -r requirements.txt
 
-# Needs to be modified to run in script
-    # ask for password
-curl -H "Content-Type: application/x-www-form-urlencoded" -X POST https://$[palo_ip]/api/?type=keygen -d 'user=admin&password=$[palo_pw]'
+#Line below came from chatgpt 😎
+api_key=$(curl -s -k -H "Content-Type: application/x-www-form-urlencoded" -X POST "https://${palo_ip}/api/?type=keygen" -d "user=admin&password=${palo_pw}" | grep -oP '(?<=<key>)[^<]+')
 
-# output to fw.yml file for invintory and encrypt with ansible-vault for another password
-echo "all:
+# Output to fw.yml 
+cat > fw.yml <<EOF
+all:
   hosts:
     firewall:
-      hosts: '$palo_ip'
-      api_key: <api_key> 
-      " > fw.yml
-      # ansible_python_interpreter: /usr/bin/python3
+      hosts:
+        - ${palo_ip}
+      vars:
+        api_key: ${api_key}
+EOF
 
-# encrypt vault
-ansible-vault encrypt fw.yml
+sudo ansible-vault encrypt fw.yml
