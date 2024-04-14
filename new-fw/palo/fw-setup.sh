@@ -3,7 +3,7 @@ read -p "Palo IP: " palo_ip
 read -p "Palo PW: " palo_pw
 
 sudo apt update
-sudo apt install -y cowsay ansible-core python3-pip
+sudo apt install -y ansible-core python3-pip
 
 sudo ansible-galaxy collection install paloaltonetworks.panos
 pip install -r requirements.txt
