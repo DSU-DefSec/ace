@@ -1,0 +1,11 @@
+# Security profile
+- name: setup security profile group
+  paloaltonetworks.panos.panos_pg:
+    provider: "{{ provider }}"
+    pg_name: "security"
+    virus: "default"
+    file_blocking: "basic file blocking"
+    spyware: "default"
+    vulnerability: "default"
+    url_filtering: "default"
+    wildfire: "default"
