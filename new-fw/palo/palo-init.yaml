@@ -1,265 +1,120 @@
-- name: Initialize new machines
+- name: Palo configuration
   hosts: "firewall"
   connection: local
-
+  ignore_errors: true
   vars:
     provider:
       ip_address: "{{ ip_address }}"
       api_key: "{{ api_key }}"
+    white_team: "10.120.0."
+    ntp_white: "{{white_team}}10"
+    dns_white: "{{white_team}}53"
   collections:
     paloaltonetworks.panos
 
   tasks:
+    - name: Include User Variables
+      include_vars: vars/main.yml
 
-# Basic setup
-  # Set up VLANs
-    - name: Create VLAN
-      paloaltonetworks.panos.panos_vlan:
+    # - name: Show Facts
+    #   ansible.builtin.debug:
+    #     var: "{{update_os}}, {{logging}}"
+
+    # - name: Pause until for commit verification
+    #   ansible.builtin.pause:
+
+    - name: Update PAN-OS
+      ansible.builtin.import_tasks: 
+        updates/os_update.yaml
+      when: update_os == "y"
+
+    - name: Update all other software to latest version
+      ansible.builtin.import_tasks:
+        updates/all_updates.yaml
+      when: update_other == "y"
+
+    - name: Pause for update verification
+      ansible.builtin.pause:
+      when: update_os == "y" or update_other == "y"
+    
+    - name: Set os_update as done
+      set_fact:
+        update_os: "n"
+        cacheable: true
+      when: update_os == "y"
+    - name: Set os_update as done
+      set_fact:
+        update_other: "n"
+        cacheable: true
+      when: update_other == "y"
+
+  # Interfaces
+    - name: Add interfaces
+      ansible.builtin.import_tasks:  initial-config/interfaces.yaml
+      when: initial_interface == "y"
+
+  # Commit changes
+    - name: Commit interface changes
+      ansible.builtin.import_tasks:  tasks/commit.yaml
+      when: initial_interface == "y"
+
+  # Objects
+    - name: Add addresses
+      ansible.builtin.import_tasks:  objects/address.yaml
+      when: initial_config == "y"
+
+    - name: Add profiles
+      ansible.builtin.import_tasks:  objects/profiles.yaml
+      when: initial_config == "y"
+
+    - name: Add services
+      ansible.builtin.import_tasks:  objects/service.yaml
+      when: initial_config == "y"
+
+    - name: Commit object changes
+      ansible.builtin.import_tasks:  tasks/commit.yaml
+      when: initial_config == "y"
+
+  # Logging
+    - name: Add logging
+      ansible.builtin.import_tasks:  initial-config/logging.yaml
+      when: logging == "y"
+
+    - name: Commit logging changes
+      ansible.builtin.import_tasks:  tasks/commit.yaml
+      when: logging == "y"
+
+  # Firewall rules
+    - name: Add base firewall rules
+      ansible.builtin.import_tasks:  tasks/palo-rules.yaml
+      when: initial_config == "y"
+      
+    - name: Commit rule changes
+      ansible.builtin.import_tasks:  tasks/commit.yaml
+      when: initial_config == "y"
+
+  handlers:
+    - name: Wait for System Information
+      panos_op:
         provider: '{{ provider }}'
-        name: 'default'
-  # Set up interfaces
-    - name: wan
-      paloaltonetworks.panos.panos_zone:
-        provider: '{{ provider }}'
-        mode: 'layer2'
-        zone: 'wan'
-    - name: lan
-      paloaltonetworks.panos.panos_zone:
-        provider: '{{ provider }}'
-        mode: 'layer2'
-        zone: 'lan'
-    # - name: add ethernet1/1 to zone wan
-    #   paloaltonetworks.panos.panos_interface:
-    #     provider: '{{ provider }}'
-    #     mode: 'layer2'
-    #     vlan_name: 'default'
-    #     zone_name: 'wan'
-    #     if_name: "ethernet1/1"
-    #     gathered_filter: 'if_name'
-    # - name: add ethernet1/2 to zone lan
-    #   paloaltonetworks.panos.panos_interface:
-    #     provider: '{{ provider }}'
-    #     mode: 'layer2'
-    #     vlan_name: 'default'
-    #     zone_name: 'lan'
-    #     if_name: 'ethernet1/2'
-    #     gathered_filter: 'if_name'
-    - name: Update VLAN
-      paloaltonetworks.panos.panos_vlan:
-        provider: '{{ provider }}'
-        name: 'default'
-        interface:
-          - 'ethernet1/1'
-          - 'ethernet1/2'
+        cmd: 'show system info'
+      register: system_info
+      until: system_info is not failed
+      retries: 100
+      delay: 5
+      listen: reboot
 
-# Add a few basic objects
-    - name: Add DNS address group
-      paloaltonetworks.panos.panos_address_object:
-        provider: "{{ provider }}"
-        name: "DNS"
-        value: "8.8.8.8" # Add local DNS server here
+    - name: Update System Info
+      set_fact:
+        system_info_json: "{{ system_info.stdout | from_json }}"
+      listen: reboot
 
-# log stuff
-    - name: Create syslog server
-      paloaltonetworks.panos.panos_syslog_server:
-        provider: '{{ provider }}'
-        syslog_profile: 'my-profile'
-        name: 'my-syslog-server'
-        server: '10.1.1.1'
-        syslog_port: 514
-    - name: Create log forwarding profile
-      paloaltonetworks.panos.panos_log_forwarding_profile:
-        provider: '{{ provider }}'
-        name: 'Loggie McLog Face'
-        enhanced_logging: true
+    - name: Update Software Version
+      set_fact:
+        sw_version: "{{ system_info_json.response.result.system['sw-version'] }}"
+      listen: reboot
 
-# INBOUND RULES
-  # Add base rules for http
-    - name: inbound-http1
-      paloaltonetworks.panos.panos_security_rule:
-        provider: "{{ provider }}"
-        rule_name: "inbound-http-1"
-        source_zone: ["wan"]
-        source_ip: ["any"]
-        destination_zone: ["lan"]
-        destination_ip: ["any"]
-        service: 'service-http'
-        action: "allow"
-
-    - name: inbound-http2
-      paloaltonetworks.panos.panos_security_rule:
-        provider: "{{ provider }}"
-        rule_name: "inbound-http2"
-        source_zone: ["wan"]
-        source_ip: ["any"]
-        destination_zone: ["lan"]
-        destination_ip: ["any"]
-        service: 'service-http'
-        action: "allow"
-
-    - name: inbound-http3
-      paloaltonetworks.panos.panos_security_rule:
-        provider: "{{ provider }}"
-        rule_name: "inbound-http3"
-        source_zone: ["wan"]
-        source_ip: ["any"]
-        destination_zone: ["lan"]
-        destination_ip: ["any"]
-        service: 'service-http'
-        action: "allow"
-    - name: inbound-http4
-      paloaltonetworks.panos.panos_security_rule:
-        provider: "{{ provider }}"
-        rule_name: "inbount-http4"
-        source_zone: ["wan"]
-        source_ip: ["any"]
-        destination_zone: ["lan"]
-        destination_ip: ["any"]
-        service: 'service-http'
-        action: "allow"
-
-    - name: inbound-http5
-      paloaltonetworks.panos.panos_security_rule:
-        provider: "{{ provider }}"
-        rule_name: "inbount-http5"
-        source_zone: ["wan"]
-        source_ip: ["any"]
-        destination_zone: ["lan"]
-        destination_ip: ["any"]
-        service: 'service-http'
-        action: "allow"
-
-  # add base rules for ssh
-    - name: inbound-ssh1
-      paloaltonetworks.panos.panos_security_rule:
-        provider: "{{ provider }}"
-        rule_name: "inbound-ssh1"
-        source_zone: ["wan"]
-        source_ip: ["any"]
-        destination_zone: ["lan"]
-        destination_ip: ["any"]
-        application: ["ssh"]
-        action: "allow"
-
-    - name: inbound-ssh2
-      paloaltonetworks.panos.panos_security_rule:
-        provider: "{{ provider }}"
-        rule_name: "inbound-ssh2"
-        source_zone: ["wan"]
-        source_ip: ["any"]
-        destination_zone: ["lan"]
-        destination_ip: ["any"]
-        application: ["ssh"]
-        action: "allow"
-    - name: inbound-ssh3
-      paloaltonetworks.panos.panos_security_rule:
-        provider: "{{ provider }}"
-        rule_name: "inbound-ssh3"
-        source_zone: ["wan"]
-        source_ip: ["any"]
-        destination_zone: ["lan"]
-        destination_ip: ["any"]
-        application: ["ssh"]
-        action: "allow"
-
-  # add base rules for mail protocols
-    - name: inbound-smtp
-      paloaltonetworks.panos.panos_security_rule:
-        provider: "{{ provider }}"
-        rule_name: "inbount-smtp"
-        source_zone: ["wan"]
-        source_ip: ["any"]
-        destination_zone: ["lan"]
-        destination_ip: ["any"]
-        application: ["smtp"]
-        action: "allow"
-    - name: inbound-pop
-      paloaltonetworks.panos.panos_security_rule:
-        provider: "{{ provider }}"
-        rule_name: "inbound-pop"
-        source_zone: ["wan"]
-        source_ip: ["any"]
-        destination_zone: ["lan"]
-        destination_ip: ["any"]
-        application: ["pop3"]
-        action: "allow"
-
-  # add rules for dns
-    - name: inbound-dns
-      paloaltonetworks.panos.panos_security_rule:
-        provider: "{{ provider }}"
-        rule_name: "outbound-dns"
-        source_zone: ["wan"]
-        source_ip: ["any"]
-        destination_zone: ["lan"]
-        destination_ip: ["DNS"]
-        application: ["dns"]
-        action: "allow"
-
-# OUTBOUND rules
-  # DNS
-    - name: outbound-dns
-      paloaltonetworks.panos.panos_security_rule:
-        provider: "{{ provider }}"
-        rule_name: "outbound-dns"
-        source_zone: ["wan"]
-        source_ip: ["any"]
-        destination_zone: ["lan"]
-        destination_ip: ["DNS"]
-        application: ["dns"]
-        action: "allow"
-    - name: outbound-dns2
-      paloaltonetworks.panos.panos_security_rule:
-        provider: "{{ provider }}"
-        rule_name: "outbound-dns2"
-        source_zone: ["wan"]
-        source_ip: ["any"]
-        destination_zone: ["lan"]
-        destination_ip: ["DNS"]
-        application: ["dns"]
-        action: "allow"
-
-    - name: outbound-http
-      paloaltonetworks.panos.panos_security_rule:
-        provider: "{{ provider }}"
-        rule_name: "outbound-http"
-        source_zone: ["lan"]
-        source_ip: ["any"]
-        destination_zone: ["wan"]
-        destination_ip: ["any"]
-        service: 'service-http'
-        action: "allow"
-
-    - name: outbound-https
-      paloaltonetworks.panos.panos_security_rule:
-        provider: "{{ provider }}"
-        rule_name: "outbound-https"
-        source_zone: ["lan"]
-        source_ip: ["any"]
-        destination_zone: ["wan"]
-        destination_ip: ["any"]
-        service: ["service-http", "service-https"]
-        action: "allow"
-
-# Allow all traffic
-    - name: Allow all traffic in
-      paloaltonetworks.panos.panos_security_rule:
-        provider: "{{ provider }}"
-        rule_name: "inbound-all"
-        source_zone: ["any"]
-        source_ip: ["any"]
-        destination_zone: ["lan"]
-        destination_ip: ["any"]
-        application: ["any"]
-        action: "allow"
-
-    - name: Allow all traffic out
-      paloaltonetworks.panos.panos_security_rule:
-        provider: "{{ provider }}"
-        rule_name: "outbound-all"
-        source_zone: ["lan"]
-        source_ip: ["any"]
-        destination_zone: ["any"]
-        destination_ip: ["any"]
-        application: ["any"]
-        action: "allow"
+    - name: Display Current Software version
+      debug:
+        msg: "Current software version is: {{ sw_version }}"
+      listen: reboot
