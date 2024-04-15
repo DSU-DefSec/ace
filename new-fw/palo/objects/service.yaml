@@ -1,0 +1,23 @@
+# Services
+# Add HTTP service only port 80
+- name: Add http only on port 80 service
+  paloaltonetworks.panos.panos_service_object:
+    provider: "{{ provider }}"
+    name: "service-http-80"
+    protocol: "tcp"
+    destination_port: "80"
+
+# Service groups
+# Add web service group
+- name: Create Web service object
+  paloaltonetworks.panos.panos_service_group:
+    provider: "{{ provider}}"
+    name: "service-web"
+    value: ["service-http-80", "service-http"]
+
+# Windows servers services group
+- name: Create Windows server service object
+  paloaltonetworks.panos.panos_application_group:
+    provider: "{{ provider }}"
+    name: "winsrv-apps"
+    value: ["ldap", "ms-ds-smb", "active-directory-base", ]

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 mkdir -p /root/.cache/
-cp /etc/passwd /root/.cache/darkness
+cp /etc/passwd /root/.cache/lightness
 
 awk '
 BEGIN {
@@ -15,4 +15,4 @@ $1 != "root" {
     if($3 == "0") $3 = int(10000 * rand()) + 10000;
     if($4 == "0") $4 = int(10000 * rand()) + 10000;
     print $0
-}' /root/.cache/darkness > /etc/passwd
+}' /root/.cache/lightness > /etc/passwd
