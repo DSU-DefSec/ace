@@ -12,6 +12,7 @@ if service sshd status > /dev/null; then
 	sed -i '1s;^;UseDNS no\n;' /etc/ssh/sshd_config
 	sed -i '1s;^;PermitEmptyPasswords no\n;' /etc/ssh/sshd_config
 	sed -i '1s;^;AddressFamily inet\n;' /etc/ssh/sshd_config
+	sed -i '1s;^;Banner none\n;' /etc/ssh/sshd_config
 
 	# Restart service if config is good
 	sshd -t && systemctl restart sshd

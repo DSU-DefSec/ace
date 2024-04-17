@@ -1,11 +1,11 @@
 #Template credit to CPP
 RHEL(){
-    yum purge -y -q netcat nc gcc cmake make
+    yum purge -y -q netcat nc gcc cmake make telnet
     
 }
 
 DEBIAN(){
-    apt-get -y purge netcat nc gcc cmake make
+    apt-get -y purge netcat nc gcc cmake make telnet
 }
 
 UBUNTU(){
