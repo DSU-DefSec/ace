@@ -122,5 +122,5 @@
 
 - name: Set initial logging as done
   set_fact:
-    logging: "n"
+    config_logging: "n"
     cacheable: true

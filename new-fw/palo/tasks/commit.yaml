@@ -12,7 +12,7 @@
   ansible.builtin.pause:
 
 - name: Commit changes if needed
-  paloaltonetworks.panos.panos_commit:
+  paloaltonetworks.panos.panos_commit_firewall:
     provider: '{{ provider }}'
   when: >
     (changes.stdout | from_json).response.result.journal is defined and

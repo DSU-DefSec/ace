@@ -35,7 +35,7 @@
     source_ip: ["any"]
     destination_zone: ["lan"]
     destination_ip: ["any"]
-    application: ["ms-sql", "mysql"]
+    application: ["mysql"]
     action: "deny"
     log_start: true
     log_end: true
@@ -183,6 +183,7 @@
     log_end: true
     group_profile: "security"
 
+
 # add rules for dns
 - name: Inbound-dns
   paloaltonetworks.panos.panos_security_rule:
@@ -242,6 +243,16 @@
     log_end: true
     group_profile: "security"
 
+- name: Inbound safety
+  paloaltonetworks.panos.panos_security_rule:
+    provider: "{{ provider }}"
+    rule_name: "inbound-safety"
+    source_zone: ["wan"]
+    source_ip: ["any"]
+    destination_zone: ["lan"]
+    destination_ip: ["safe"]
+
+
 # Allow all traffic
 - name: Allow all traffic in
   paloaltonetworks.panos.panos_security_rule:
@@ -271,7 +282,36 @@
     log_end: true
     group_profile: "security"
 
+- name: Add outbound block rule
+  paloaltonetworks.panos.panos_security_rule:
+    provider: "{{ provider }}"
+    rule_name: "outbound-block-all"
+    source_zone: ["any"]
+    source_ip: ["lan"]
+    destination_zone: ["any"]
+    destination_ip: ["any"]
+    application: ["any"]
+    action: "deny"
+    log_start: true
+    log_end: true
+    group_profile: "security"
+
+- name: Add inbound block rule
+  paloaltonetworks.panos.panos_security_rule:
+    provider: "{{ provider }}"
+    rule_name: "inbound-block-all"
+    source_zone: ["wan"]
+    source_ip: ["any"]
+    destination_zone: ["lan"]
+    destination_ip: ["any"]
+    application: ["any"]
+    action: "deny"
+    log_start: true
+    log_end: true
+    group_profile: "security"
+
+
 - name: Set initial rules as done
   set_fact:
-    create_rules: "n"
+    config_initial_rules: "n"
     cacheable: true
