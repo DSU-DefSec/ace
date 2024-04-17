@@ -1,0 +1,6 @@
+collections:
+- name: paloaltonetworks.panos
+
+- name: pfsensible.core
+
+# - name: community.network.ftd_configuration
