@@ -1,0 +1,134 @@
+- name: Palo configuration
+  hosts: "firewall"
+  connection: local
+  ignore_errors: true
+  vars:
+    provider:
+      ip_address: "{{ ip_address }}"
+      api_key: "{{ api_key }}"
+  collections:
+    paloaltonetworks.panos
+
+  tasks:
+    - name: Include User Variables
+      include_vars: vars/main.yml
+
+    # - name: Show Facts
+    #   ansible.builtin.debug:
+    #     var: "{{update_os}}, {{logging}}"
+
+    # - name: Pause until for commit verification
+    #   ansible.builtin.pause:
+    - name: Print configs
+      debug:
+        msg:
+          Update OS: "{{ update_os }}"
+          Update Other: "{{ update_other }}"
+          Initial Interface: "{{ config_initial_interface }}"
+          Initial Groups: "{{ config_initial_groups }}"
+          Logging: "{{ config_logging }}"
+          Initial Rules: "{{ config_initial_rules }}"
+          PANOS Version: "{{ panos_version }}"
+          IP Range: "{{ ip_range }}"
+          Network: "{{ ip_range_mask }}"
+          Wazuh: "{{ wazuh }}"
+          Wazuh Port: "{{ wazuh_port }}"
+    - name: Confirm config
+      ansible.builtin.pause:
+
+    - name: Update PAN-OS
+      ansible.builtin.import_tasks: 
+        tasks/updates/os_update.yaml
+      when: update_os == "y"
+
+    - name: Update all other software to latest version
+      ansible.builtin.import_tasks:
+        tasks/updates/all_updates.yaml
+      when: update_other == "y"
+
+    - name: Pause for update verification
+      ansible.builtin.pause:
+      when: update_os == "y" or update_other == "y"
+    
+    - name: Set os_update as done
+      set_fact:
+        update_os: "n"
+        cacheable: true
+      when: update_os == "y"
+    - name: Set os_update as done
+      set_fact:
+        update_other: "n"
+        cacheable: true
+      when: update_other == "y"
+
+  # Interfaces
+    - name: Add interfaces
+      ansible.builtin.import_tasks:  tasks/initial-config/interfaces.yaml
+      when: config_initial_interface == "y"
+
+  # Commit changes
+    - name: Commit interface changes
+      ansible.builtin.import_tasks:  tasks/commit.yaml
+      when: config_initial_interface == "y"
+
+  # Objects
+    - name: Add addresses
+      ansible.builtin.import_tasks:  tasks/objects/address.yaml
+      when: config_initial_groups == "y"
+
+    - name: Add profiles
+      ansible.builtin.import_tasks:  tasks/objects/profiles.yaml
+      when: config_initial_groups == "y"
+
+    - name: Add services
+      ansible.builtin.import_tasks:  tasks/objects/service.yaml
+      when: config_initial_groups == "y"
+
+    - name: Commit object changes
+      ansible.builtin.import_tasks:  tasks/commit.yaml
+      when: config_initial_groups == "y"
+
+  # Logging
+    - name: Add logging
+      ansible.builtin.import_tasks:  tasks/initial-config/logging.yaml
+      when: config_logging == "y"
+
+    - name: Commit logging changes
+      ansible.builtin.import_tasks:  tasks/commit.yaml
+      when: config_logging == "y"
+
+  # Firewall rules
+    - name: Add base firewall rules
+      ansible.builtin.import_tasks:  tasks/palo-rules.yaml
+      when: config_initial_rules == "y"
+      
+    - name: Commit rule changes
+      ansible.builtin.import_tasks:  tasks/commit.yaml
+      when: config_initial_rules == "y"
+
+
+  handlers:
+    - name: Wait for System Information
+      paloaltonetworks.panos.panos_op:
+        provider: '{{ provider }}'
+        cmd: 'show system info'
+      register: system_info
+      until: system_info is not failed
+      retries: 100
+      delay: 5
+      listen: reboot
+
+    - name: Update System Info
+      set_fact:
+        system_info_json: "{{ system_info.stdout | from_json }}"
+      listen: reboot
+
+    - name: Update Software Version
+      set_fact:
+        sw_version: "{{ system_info_json.response.result.system['sw-version'] }}"
+      listen: reboot
+
+    - name: Display Current Software version
+      debug:
+        msg: "Current software version is: {{ sw_version }}"
+      listen: reboot
