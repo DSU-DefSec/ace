@@ -1,5 +1,5 @@
-- name: Palo configuration
-  hosts: "firewall"
+- name: pfSense configuration
+  hosts: "pfSense"
   connection: local
   ignore_errors: true
   vars:
