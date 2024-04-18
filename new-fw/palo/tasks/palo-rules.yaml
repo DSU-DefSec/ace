@@ -304,6 +304,20 @@
     log_end: true
     group_profile: "security"
 
+- name: Add windows server rules
+  paloaltonetworks.panos.panos_security_rule:
+    provider: "{{ provider }}"
+    rule_name: "lan to windows-server"
+    source_zone: ["lan"]
+    source_ip: ["windows"]
+    destination_zone: ["winsrv"]
+    destination_ip: ["winsrv"]
+    application: ["winsrv-apps"]
+    action: "allow"
+    log_start: true
+    log_end: true
+    group_profile: "security"
+
 - name: Add outbound block rule
   paloaltonetworks.panos.panos_security_rule:
     provider: "{{ provider }}"
