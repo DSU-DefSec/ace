@@ -16,6 +16,17 @@
         destination: 10.5.2.2
         destination_port: [80, 443]
         state: present
+    
+    - name: Allow FTP to UbuntuFTP
+      pfsensible.core.pfsense_rule:
+        name: "Allow FTP to UbuntuFTP"
+        action: pass
+        interface: wan
+        protocol: tcp
+        source: any
+        destination: 10.5.2.4
+        destination_port: 21
+        state: present
 
     - name: Allow DNS to Mail server
       pfsensible.core.pfsense_rule:
@@ -28,16 +39,6 @@
         destination_port: 53
         state: present
 
-    - name: Allow FTP to UbuntuFTP
-      pfsensible.core.pfsense_rule:
-        name: "Allow FTP to UbuntuFTP"
-        action: pass
-        interface: wan
-        protocol: tcp
-        source: any
-        destination: 10.5.2.4
-        destination_port: 21
-        state: present
 
     - name: Allow SSH to Ubuntu1
       pfsensible.core.pfsense_rule:
