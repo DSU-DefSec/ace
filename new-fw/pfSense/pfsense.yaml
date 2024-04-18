@@ -8,4 +8,3 @@
     - name: Add rules
       ansible.builtin.import_tasks:
         rules/ub.yaml
-
