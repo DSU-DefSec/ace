@@ -8,7 +8,7 @@
   tasks:
     - name: Allow HTTP to Backup Server
       pfsensible.core.pfsense_rule:
-        name: "Allow HTTP to Backup Server"
+        name: "inbound-http-backupserver"
         action: pass
         interface: wan
         protocol: tcp
@@ -20,7 +20,7 @@
 
     - name: Allow FTP to UbuntuFTP
       pfsensible.core.pfsense_rule:
-        name: "Allow FTP to UbuntuFTP"
+        name: "inbound-ftp-ubuntuftp"
         action: pass
         interface: wan
         protocol: tcp
@@ -33,7 +33,7 @@
 
     - name: Allow DNS to Mail server
       pfsensible.core.pfsense_rule:
-        name: "Allow DNS to Mail server"
+        name: inbound-dns-mailserver
         action: pass
         interface: wan
         protocol: udp
@@ -46,7 +46,7 @@
 
     - name: Allow SSH to Ubuntu1
       pfsensible.core.pfsense_rule:
-        name: "Allow SSH to Ubuntu1"
+        name: "bound-ssh-ubuntu1"
         action: pass
         interface: wan
         protocol: tcp
@@ -59,7 +59,7 @@
 
     - name: Allow SSH to Ubuntu2
       pfsensible.core.pfsense_rule:
-        name: "Allow SSH to Ubuntu2"
+        name: "inbound-ssh-ubuntu2"
         action: pass
         interface: wan
         protocol: tcp
@@ -72,7 +72,7 @@
 
     - name: Allow SSH to Ubuntu3
       pfsensible.core.pfsense_rule:
-        name: "Allow SSH to Ubuntu3"
+        name: "inbound-ssh-ubuntu3"
         action: pass
         interface: wan
         protocol: tcp
@@ -85,7 +85,7 @@
 
     - name: Allow HTTP to Webserver
       pfsensible.core.pfsense_rule:
-        name: "Allow HTTP to Webserver"
+        name: "inbound-http-webserver"
         action: pass
         interface: wan
         protocol: tcp
@@ -98,7 +98,7 @@
 
     - name: Allow MySQL to Webserver
       pfsensible.core.pfsense_rule:
-        name: "Allow MySQL to Webserver"
+        name: "inbound-mysql-webserver"
         action: pass
         interface: wan
         protocol: tcp
@@ -111,7 +111,7 @@
 
     - name: Allow WinRM to Windows1
       pfsensible.core.pfsense_rule:
-        name: "Allow WinRM to Windows1"
+        name: "inbound-winrm-windows1"
         action: pass
         interface: wan
         protocol: tcp
@@ -124,7 +124,7 @@
 
     - name: Allow WinRM to Windows2
       pfsensible.core.pfsense_rule:
-        name: "Allow WinRM to Windows2"
+        name: "inbound-winrm-windows2"
         action: pass
         interface: wan
         protocol: tcp
@@ -137,10 +137,46 @@
 
     - name: Allow ICMP to LAN
       pfsensible.core.pfsense_rule:
-        name: "Allow ICMP to LAN"
+        name: "inbound-lan-icmp"
         action: pass
         interface: wan
         protocol: icmp
         source: any
         destination: NET:lan
+        log: true
+
+    - name: Allow LAN web traffic out
+      pfsensible.core.pfsense_rule:
+        name: "outbound-lan-web"
+        action: pass
+        interface: lan
+        protocol: tcp
+        source: any
+        destination: any
+        destination_port: [80, 443]
+        state: present
+        log: true
+
+    - name: Allow LAN DNS out
+      pfsensible.core.pfsense_rule:
+        name: "outbound-lan-dns"
+        action: pass
+        interface: lan
+        protocol: udp
+        source: any
+        destination: any
+        destination_port: 53
+        state: present
+        log: true
+
+    - name: Allow DMZ DNS out
+      pfsensible.core.pfsense_rule:
+        name: "outbound-dmz-dns"
+        action: pass
+        interface: dmz
+        protocol: udp
+        source: any
+        destination: any
+        destination_port: 53
+        state: present
         log: true
