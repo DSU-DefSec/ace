@@ -4,4 +4,4 @@ firewall:
     192.168.0.60:
   vars:
     ip_address: 192.168.0.60
-    api_key: "LUFRPT0wd0hqeFZTcGdGb2xyM0VRSEFKOGx0MmQ1QUU9YlJFMFY5NjF3cEQ0b29qR0UwWWZZc1l6VSt5ejN5MFE4ais3RXB6YzVJcGg3YzRxOVpWOFlON2xIS29kSkhTaA=="
+    api_key: ""
