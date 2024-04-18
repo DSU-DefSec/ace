@@ -1,0 +1,19 @@
+- name: Check for pending changes
+  paloaltonetworks.panos.panos_op:
+    provider: "{{ provider }}"
+    cmd: "show config list changes"
+  register: changes
+
+- name: Display changes
+  ansible.builtin.debug:
+    msg: "{{ changes.stdout | from_json }}"
+
+- name: Pause until for commit verification
+  ansible.builtin.pause:
+
+- name: Commit changes if needed
+  paloaltonetworks.panos.panos_commit_firewall:
+    provider: '{{ provider }}'
+  when: >
+    (changes.stdout | from_json).response.result.journal is defined and
+    (changes.stdout | from_json).response.result.journal.entry | length > 0

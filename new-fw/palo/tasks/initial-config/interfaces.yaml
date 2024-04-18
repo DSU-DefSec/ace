@@ -1,0 +1,71 @@
+# Interface setup
+# Set up VLANs
+- name: Create VLAN
+  paloaltonetworks.panos.panos_vlan:
+    provider: "{{ provider }}"
+    name: "default"
+    gathered_filter: "vlan_name"
+
+# Create zones
+- name: Create WAN zone
+  paloaltonetworks.panos.panos_zone:
+    provider: "{{ provider }}"
+    mode: "layer2"
+    zone: "wan"
+
+- name: Create LAN zone
+  paloaltonetworks.panos.panos_zone:
+    provider: "{{ provider }}"
+    mode: "layer2"
+    zone: "lan"
+
+
+# Custom zones for certian applications
+- name: Create Windows zone
+  paloaltonetworks.panos.panos_zone:
+    provider: "{{ provider }}"
+    mode: "layer2"
+    zone: "winsrv"
+
+- name: Create Client zone
+  paloaltonetworks.panos.panos_zone:
+    provider: "{{ provider }}"
+    mode: "layer2"
+    zone: "clients"
+
+- name: Create DB zone
+  paloaltonetworks.panos.panos_zone:
+    provider: "{{ provider }}"
+    mode: "layer2"
+    zone: "dbsrv"
+
+
+
+# Add interfaces to zones
+- name: add ethernet1/1 to zone wan
+  paloaltonetworks.panos.panos_interface:
+    provider: "{{ provider }}"
+    mode: "layer2"
+    vlan_name: "default"
+    zone_name: "wan"
+    if_name: "ethernet1/1"
+    gathered_filter: "if_name"
+- name: add ethernet1/2 to zone lan
+  paloaltonetworks.panos.panos_interface:
+    provider: "{{ provider }}"
+    mode: "layer2"
+    vlan_name: "default"
+    zone_name: "lan"
+    if_name: "ethernet1/2"
+    gathered_filter: "if_name"
+- name: Update VLAN
+  paloaltonetworks.panos.panos_vlan:
+    provider: "{{ provider }}"
+    name: "default"
+    interface:
+      - "ethernet1/1"
+      - "ethernet1/2"
+- name: Set initial interfaces as done
+  set_fact:
+    initial_interface: "n"
+    cacheable: true
