@@ -1,11 +1,7 @@
-- name: pfSense configuration
+- name: PfSense configuration
   hosts: "pfSense"
   connection: local
   ignore_errors: true
-  vars:
-    provider:
-      ip_address: "{{ ip_address }}"
-      api_key: "{{ api_key }}"
   collections:
     pfsensible.core
 
