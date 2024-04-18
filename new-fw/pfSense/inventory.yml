@@ -1,3 +1,5 @@
 pfSense:
   hosts:
     192.168.253.85:
+  vars:
+    ansible_user: admin
