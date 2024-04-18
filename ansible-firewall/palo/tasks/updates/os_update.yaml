@@ -1,0 +1,31 @@
+- name: Update content to latest version
+  paloaltonetworks.panos.panos_dynamic_updates:
+    provider: '{{ provider }}'
+  register: content
+
+- name: Updates available 
+  ansible.builtin.debug:
+    msg: "{{ content }}"
+
+- name: PAN-OS update
+  ansible.builtin.debug:
+    msg: "{{ panos_version }}"
+
+- name: Download PAN-OS update
+  paloaltonetworks.panos.panos_software:
+    provider: '{{ provider }}'
+    version: '{{ panos_version }}'
+    install: true
+    restart: true
+  register: install_result
+
+- name: Notify Reboot Handler
+  command: echo "Wait for Device Reboot"
+  notify: "reboot"
+
+- name: Pause for Restart Checks
+  pause:
+    seconds: 30
+
+- name: Wait for Online Handler
+  meta: flush_handlers

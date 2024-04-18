@@ -1,0 +1,48 @@
+# Addresses
+- name: Add LAN Address
+  paloaltonetworks.panos.panos_address_object:
+    provider: "{{ provider }}"
+    name: "lan"
+    value: "{{ip_range_mask}}"
+
+- name: Add DNS address group
+  paloaltonetworks.panos.panos_address_object:
+    provider: "{{ provider }}"
+    name: "dns_local"
+    value: "{{ip_range}}{{dns}}"
+
+- name: Add windows address object
+  paloaltonetworks.panos.panos_address_object:
+    provider: "{{ provider }}"
+    name: "win1"
+    value: "{{ip_range}}10"
+
+- name: Add tmp address object
+  paloaltonetworks.panos.panos_address_object:
+    provider: "{{ provider }}"
+    name: "tmp"
+    value: "1.1.1.1"
+
+- name: Add windows server address group
+  paloaltonetworks.panos.panos_address_group:
+    provider: "{{ provider }}"
+    name: "winsrv"
+    static_value: "win1"
+
+- name: Add windows address group
+  paloaltonetworks.panos.panos_address_group:
+    provider: "{{ provider }}"
+    name: "windows"
+    static_value: "win1"
+
+- name: Add client address object
+  paloaltonetworks.panos.panos_address_group:
+    provider: "{{ provider }}"
+    name: "client"
+    static_value: "win1"
+
+- name: Add safe address group
+  paloaltonetworks.panos.panos_address_group:
+    provider: "{{ provider }}"
+    name: "safe"
+    static_value: "tmp"
