@@ -6,9 +6,6 @@
     provider:
       ip_address: "{{ ip_address }}"
       api_key: "{{ api_key }}"
-    white_team: "10.120.0."
-    ntp_white: "{{white_team}}10"
-    dns_white: "{{white_team}}53"
   collections:
     paloaltonetworks.panos
 
@@ -16,12 +13,6 @@
     - name: Include User Variables
       include_vars: vars/main.yml
 
-    - name: Set IP Range
-      set_fact:
-        ip_range: "10.{{team_number}}0.{{team_number}}0."
-    - name: Set IP Range mask
-      set_fact:
-        ip_range_mask: "10.{{team_number}}0.{{team_number}}0.0/24"
     # - name: Show Facts
     #   ansible.builtin.debug:
     #     var: "{{update_os}}, {{logging}}"
@@ -38,7 +29,6 @@
           Logging: "{{ config_logging }}"
           Initial Rules: "{{ config_initial_rules }}"
           PANOS Version: "{{ panos_version }}"
-          Team Number: "{{ team_number }}"
           IP Range: "{{ ip_range }}"
           Network: "{{ ip_range_mask }}"
           Wazuh: "{{ wazuh }}"
