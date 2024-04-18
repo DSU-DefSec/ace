@@ -180,3 +180,13 @@
         destination_port: 53
         state: present
         log: true
+
+    - name: Block all inbound
+      pfsensible.core.pfsense_rule:
+        name: "block-all-inbound"
+        action: block
+        interface: wan
+        source: any
+        destination: any
+        log: true
+        disabled: true
