@@ -1,0 +1,10 @@
+- name: PfSense configuration
+  hosts: "pfSense"
+  connection: local
+  ignore_errors: true
+
+
+  tasks:
+    - name: Add rules
+      ansible.builtin.import_tasks:
+        rules/ub.yaml
