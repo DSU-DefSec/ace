@@ -7,4 +7,124 @@
       ip_address: "{{ ip_address }}"
       api_key: "{{ api_key }}"
   collections:
-    paloaltonetworks.panos
+    pfsensible.core
+
+  tasks:
+    - name: Allow HTTP to Backup Server
+      pfsensible.core.pfsense_rule:
+        name: "Allow HTTP to Backup Server"
+        action: pass
+        interface: wan
+        protocol: tcp
+        source: any
+        destination: 10.5.2.2
+        destination_port: [80, 443]
+        state: present
+
+    - name: Allow DNS to Mail server
+      pfsensible.core.pfsense_rule:
+        name: "Allow DNS to Mail server"
+        action: pass
+        interface: wan
+        protocol: udp
+        source: any
+        destination: 10.5.2.10
+        destination_port: 53
+        state: present
+
+    - name: Allow FTP to UbuntuFTP
+      pfsensible.core.pfsense_rule:
+        name: "Allow FTP to UbuntuFTP"
+        action: pass
+        interface: wan
+        protocol: tcp
+        source: any
+        destination: 10.5.2.4
+        destination_port: 21
+        state: present
+
+    - name: Allow SSH to Ubuntu1
+      pfsensible.core.pfsense_rule:
+        name: "Allow SSH to Ubuntu1"
+        action: pass
+        interface: wan
+        protocol: tcp
+        source: any
+        destination: 10.5.1.10
+        destination_port: 22
+        state: present
+
+    - name: Allow SSH to Ubuntu2
+      pfsensible.core.pfsense_rule:
+        name: "Allow SSH to Ubuntu2"
+        action: pass
+        interface: wan
+        protocol: tcp
+        source: any
+        destination: 10.5.1.40
+        destination_port: 22
+        state: present
+
+    - name: Allow SSH to Ubuntu3
+      pfsensible.core.pfsense_rule:
+        name: "Allow SSH to Ubuntu3"
+        action: pass
+        interface: wan
+        protocol: tcp
+        source: any
+        destination: 10.5.1.80
+        destination_port: 22
+        state: present
+
+    - name: Allow HTTP to Webserver
+      pfsensible.core.pfsense_rule:
+        name: "Allow HTTP to Webserver"
+        action: pass
+        interface: wan
+        protocol: tcp
+        source: any
+        destination: 10.5.1.30
+        destination_port: 80
+        state: present
+
+    - name: Allow MySQL to Webserver
+      pfsensible.core.pfsense_rule:
+        name: "Allow MySQL to Webserver"
+        action: pass
+        interface: wan
+        protocol: tcp
+        source: any
+        destination: 10.5.1.30
+        destination_port: 3306
+        state: present
+
+    - name: Allow WinRM to Windows1
+      pfsensible.core.pfsense_rule:
+        name: "Allow WinRM to Windows1"
+        action: pass
+        interface: wan
+        protocol: tcp
+        source: any
+        destination: 10.5.1.70
+        destination_port: 5985
+        state: present
+
+    - name: Allow WinRM to Windows2
+      pfsensible.core.pfsense_rule:
+        name: "Allow WinRM to Windows2"
+        action: pass
+        interface: wan
+        protocol: tcp
+        source: any
+        destination: 10.5.1.80
+        destination_port: 5985
+        state: present
+
+    - name: Allow ICMP to LAN
+      pfsensible.core.pfsense_rule:
+        name: "Allow ICMP to LAN"
+        action: pass
+        interface: wan
+        protocol: icmp
+        source: any
+        destination: NET:lan
