@@ -1,0 +1,10 @@
+- name: Palo configuration
+  hosts: "firewall"
+  connection: local
+  ignore_errors: true
+  vars:
+    provider:
+      ip_address: "{{ ip_address }}"
+      api_key: "{{ api_key }}"
+  collections:
+    paloaltonetworks.panos
