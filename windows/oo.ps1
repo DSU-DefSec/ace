@@ -26,13 +26,13 @@ else {
 
 # Securing WinRM
 ## Disallowing unencrypted traffic
-net stop WinRM
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WinRM\Service" /v AllowUnencryptedTraffic /t REG_DWORD /d 0 /f | Out-Null
-Write-Host "[" -ForegroundColor white -NoNewLine; Write-Host "SUCCESS" -ForegroundColor green -NoNewLine; Write-Host "] WinRM secured and restarted" -ForegroundColor white
+# net stop WinRM
+# reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WinRM\Service" /v AllowUnencryptedTraffic /t REG_DWORD /d 0 /f | Out-Null
+# Write-Host "[" -ForegroundColor white -NoNewLine; Write-Host "SUCCESS" -ForegroundColor green -NoNewLine; Write-Host "] WinRM secured and restarted" -ForegroundColor white
 
 $WinRM = Read-Host "Disable WinRM?"
 if ($WinRM -eq "yes" -or $WinRM -eq "y") {
-
+    net stop winrm
     # Disabling WinRM
     Disable-PSRemoting -Force
     Remove-Item -Path WSMan:\Localhost\listener\listener* -Recurse
