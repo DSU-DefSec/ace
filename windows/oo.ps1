@@ -24,15 +24,13 @@ else {
     Write-Host "RDP will stay enabled." -ForegroundColor white
 }
 
-    # Securing WinRM
-    ## Disallowing unencrypted traffic
-    net stop WinRM
-    reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WinRM\Service" /v AllowUnencryptedTraffic /t REG_DWORD /d 0 /f | Out-Null
-    net start WinRM
-    Write-Host "[" -ForegroundColor white -NoNewLine; Write-Host "SUCCESS" -ForegroundColor green -NoNewLine; Write-Host "] WinRM secured and restarted" -ForegroundColor white
+# Securing WinRM
+## Disallowing unencrypted traffic
+net stop WinRM
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WinRM\Service" /v AllowUnencryptedTraffic /t REG_DWORD /d 0 /f | Out-Null
+Write-Host "[" -ForegroundColor white -NoNewLine; Write-Host "SUCCESS" -ForegroundColor green -NoNewLine; Write-Host "] WinRM secured and restarted" -ForegroundColor white
 
-    $WinRM = Read-Host "Disable WinRM?"
-
+$WinRM = Read-Host "Disable WinRM?"
 if ($WinRM -eq "yes" -or $WinRM -eq "y") {
 
     # Disabling WinRM
@@ -44,6 +42,7 @@ if ($WinRM -eq "yes" -or $WinRM -eq "y") {
 }
 else {
     Write-Host "The computer will not disable WinRM."
+    net start WinRM
 }
 
 # Disabling unneeded Windows features
@@ -70,6 +69,9 @@ Write-Host "[" -ForegroundColor white -NoNewLine; Write-Host "SUCCESS" -Foregrou
 reg add "HKLM\Software\Policies\Microsoft\Windows NT\Printers" /v CopyFilesPolicy /t REG_DWORD /d 1 /f | Out-Null
 reg add "HKLM\Software\Policies\Microsoft\Windows NT\Printers" /v RegisterSpoolerRemoteRpcEndPoint /t REG_DWORD /d 2 /f | Out-Null
 reg delete "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Printers\PointAndPrint" /f | Out-Null
+reg delete "HKLM\Software\Policies\Microsoft\Windows NT\Printers\PointAndPrint" /v NoWarningNoElevationOnInstall /f | Out-Null
+reg delete "HKLM\Software\Policies\Microsoft\Windows NT\Printers\PointAndPrint" /v UpdatePromptSettings /f | Out-Null
+reg add "HKLM\Software\Policies\Microsoft\Windows NT\Printers\PointAndPrint" /v RestrictDriverInstallationToAdministrators /t REG_DWORD /d 1 /f | Out-Null
 ## Mitigating CVE-2021-1678
 reg add "HKLM\System\CurrentControlSet\Control\Print" /v RpcAuthnLevelPrivacyEnabled /t REG_DWORD /d 1 /f | Out-Null
 Write-Host "[" -ForegroundColor white -NoNewLine; Write-Host "SUCCESS" -ForegroundColor green -NoNewLine; Write-Host "] PrintNightmare mitigations in place" -ForegroundColor white
@@ -280,6 +282,10 @@ reg delete "HKCU\Software\Microsoft\Windows NT\CurrentVersion\Font Management\Au
 ## Setting keyboard language to english
 Remove-ItemProperty -Path 'HKCU:\Keyboard Layout\Preload' -Name * -Force | Out-Null
 reg add "HKCU\Keyboard Layout\Preload" /v 1 /t REG_SZ /d "00000409" /f | Out-Null
+# set UI lang to english
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\Nls\Language" /v InstallLanguage /t REG_SZ /d 0409 /f | Out-Null
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\Nls\Language" /v Default /t REG_SZ /d 0409 /f | Out-Null
+Write-Output "$Env:ComputerName [INFO] Font, Themes, and Languages set to default"
 ## Setting default theme
 Start-Process -Filepath "C:\Windows\Resources\Themes\aero.theme"
 # Setting UI lang to english
@@ -584,7 +590,10 @@ reg add "HKLM\SYSTEM\CurrentControlSet\Control\Print\Providers\LanMan Print Serv
 Write-Host "[" -ForegroundColor white -NoNewLine; Write-Host "SUCCESS" -ForegroundColor green -NoNewLine; Write-Host "] Configured printer registry keys" -ForegroundColor white
 
 ## Limiting BITS transfer
+
+#change to 0??
 reg add "HKLM\Software\Policies\Microsoft\Windows\BITS" /v EnableBITSMaxBandwidth /t REG_DWORD /d 1 /f | Out-Null
+
 reg add "HKLM\Software\Policies\Microsoft\Windows\BITS" /v MaxTransferRateOffSchedule /t REG_DWORD /d 1 /f | Out-Null
 reg add "HKLM\Software\Policies\Microsoft\Windows\BITS" /v MaxDownloadTime /t REG_DWORD /d 1 /f | Out-Null
 Write-Host "[" -ForegroundColor white -NoNewLine; Write-Host "SUCCESS" -ForegroundColor green -NoNewLine; Write-Host "] Limited BITS transfer speeds" -ForegroundColor white
