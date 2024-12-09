@@ -4,7 +4,7 @@ $ErrorActionPreference = "SilentlyContinue"
 $os = (Get-CimInstance Win32_OperatingSystem).Version
 if ($os -ge '10.0.17134') {
     $recBin = 'C:\$Recycle.Bin'
-} elseif ($os -ge '6.2.9200' -and $os -lt '10.0.17134') {
+} elseif ($os -ge '6.2.9200') {
     $recBin = 'C:\$Recycle.Bin'
 } else {
     $recBin = 'C:\RECYCLER'
