@@ -3,7 +3,7 @@ param(
     [String]$Script = '',
 
     [Parameter(Mandatory=$false)]
-    [String]$Out = '',
+    [String]$Out = 'C:\',
 
     [Parameter(Mandatory=$false)]
     [switch]$Connect,
@@ -16,6 +16,12 @@ param(
 
     [Parameter(Mandatory=$false)]
     [string[]]$Exclude,
+    
+    [Parameter(Mandatory=$false)]
+    [String]$DefaultAdmin = 'Administrator',
+
+    [Parameter(Mandatory=$false)]
+    [String]$DefaultCreds = 'Password1!',
 
     [Parameter(Mandatory=$false)]
     [String]$Admin,
@@ -24,7 +30,7 @@ param(
     [switch]$NonDomain,
 
     [Parameter(Mandatory=$false)]
-    [String]$Hosts = '',
+    [String]$Hosts = 'C:\Windows\System32\drivers\etc\hosts',
 
     [Parameter(Mandatory=$false)]
     [Int]$Timeout = 3000
@@ -32,25 +38,91 @@ param(
 
 $ErrorActionPreference = "Continue"
 Add-Type -AssemblyName System.Web
+
+
+#replace with passgen
 function Get-Password {
-    do {
+    <#do {
         $p = [System.Web.Security.Membership]::GeneratePassword(14,4)
     } while ($p -match '[,;:|iIlLoO0]')
-    return $p + "1!"
+    return $p + "1!"#>
+    return "Password1!"
 }
 
-if ($Connect) {
+function Test-Port {
+    Param(
+        [string]$Ip,
+        [int]$Port,
+        [int]$Timeout = 3000
+    )
 
+    $tcpclient = $null
+    try {
+        $tcpclient = New-Object System.Net.Sockets.TcpClient
+        $iar = $tcpclient.BeginConnect($Ip, $Port, $null, $null)
+        $wait = $iar.AsyncWaitHandle.WaitOne($Timeout, $false)
+
+        if ($wait) {
+            $tcpclient.EndConnect($iar) | Out-Null
+            return $true
+        } else {
+            return $false
+        }
+    } catch {
+        return $false
+    } finally {
+        if ($tcpclient) {
+            $tcpclient.Close()
+        }
+    }
+}
+
+<#function Test-Port {
+    Param(
+        [string]$Ip,
+        [int]$Port,
+        [int]$Timeout = 3000,
+        [switch]$Verbose
+    )
+
+    $ErrorActionPreference = "SilentlyContinue"
+
+    $tcpclient = New-Object System.Net.Sockets.TcpClient
+    $iar = $tcpclient.BeginConnect($ip,$port,$null,$null)
+    $wait = $iar.AsyncWaitHandle.WaitOne($timeout,$false)
+    if (!$wait)
+    {
+        # Close the connection and report timeout
+        $tcpclient.Close()
+        if ($verbose) { Write-Host "[WARN] $($IP):$Port Connection Timeout " -ForegroundColor Yellow }
+        return @{ $Ip = $false }
+    }
+    else {
+        # Close the connection and report the error if there is one
+        $error.Clear()
+        $tcpclient.EndConnect($iar) | out-Null
+        if (!$?) {
+            if ($verbose) { Write-Host $error[0] -ForegroundColor Red };
+            return @{ $Ip = $false }
+        }
+        $tcpclient.Close()
+    }
+    return @{ $Ip = $true }
+}#>
+
+#if ($Connect) {
     if (!$Repair) {
-        Remove-Variable -Name Sessions -Scope Global -ErrorAction SilentlyContinue;
-        Remove-Variable -Name Denied -Scope Global -ErrorAction SilentlyContinue;
+        Remove-Variable -Name Sessions -Scope Global -ErrorAction Continue;
+        Remove-Variable -Name Denied -Scope Global -ErrorAction Continue;
         $global:Sessions = @()
         $global:Denied = @()
         Get-PSSession | Remove-PSSession
     }
 
     if ($NonDomain) {
-        $global:Cred = Get-Credential
+        $global:Cred = New-Object System.Management.Automation.PSCredential ($DefaultAdmin, $DefaultCreds) #Get-Credential
+    
+        #repairs existing session in repair mode
 
         if ($Repair) {
             if ($global:Sessions.Count -eq 0) {
@@ -77,13 +149,15 @@ if ($Connect) {
             $workingDir = $PWD | Select-Object -ExpandProperty Path
 
             foreach ($Computer in $Computers) {
-                Start-Job -ScriptBlock {cd $Using:workingDir; Import-Module .\testport.ps1; Test-Port -Ip $Using:Computer -Port 5985}
-            }
+                Start-Job -ArgumentList $TestPortFunction, $Computer, 5985, $Timeout -ScriptBlock {
+                    param($TestPortFunction, $Computer, $Port, $Timeout)
+                        $TestPortFunction.Invoke($Computer, $Port, $Timeout)}            }
             $5985Table = Receive-Job * -Wait
 
             foreach ($Computer in $Computers) {
-                Start-Job -ScriptBlock {cd $Using:workingDir; Import-Module .\testport.ps1; Test-Port -Ip $Using:Computer -Port 5986}
-            }
+                Start-Job -ArgumentList $TestPortFunction, $Computer, 5986, $Timeout -ScriptBlock {
+                    param($TestPortFunction, $Computer, $Port, $Timeout)
+                        $TestPortFunction.Invoke($Computer, $Port, $Timeout)}            }
             $5986Table = Receive-Job * -Wait
     
             foreach ($Computer in $Computers) {
@@ -148,13 +222,16 @@ if ($Connect) {
             $workingDir = $PWD | Select-Object -ExpandProperty Path
 
             foreach ($Computer in $Computers) {
-                Start-Job -ScriptBlock {cd $Using:workingDir; Import-Module .\testport.ps1; Test-Port -Ip $Using:Computer -Port 5985}
-            }
+                Start-Job -ArgumentList $TestPortFunction, $Computer, 5985, $Timeout -ScriptBlock {
+                    param($TestPortFunction, $Computer, $Port, $Timeout)
+                        $TestPortFunction.Invoke($Computer, $Port, $Timeout)}
+                }
             $5985Table = Receive-Job * -Wait
 
             foreach ($Computer in $Computers) {
-                Start-Job -ScriptBlock {cd $Using:workingDir; Import-Module .\testport.ps1; Test-Port -Ip $Using:Computer -Port 5986}
-            }
+                Start-Job -ArgumentList $TestPortFunction, $Computer, 5986, $Timeout -ScriptBlock {
+                    param($TestPortFunction, $Computer, $Port, $Timeout)
+                        $TestPortFunction.Invoke($Computer, $Port, $Timeout)}            }
             $5986Table = Receive-Job * -Wait
 
             foreach ($Computer in $Computers) {
@@ -188,7 +265,7 @@ if ($Connect) {
             }
         }
     }
-}
+#}
 
 if (($Script -ne '') -and ($global:Sessions.Count -gt 0) -and ($Out -ne '')) {
 
@@ -219,8 +296,11 @@ if (($Script -ne '') -and ($global:Sessions.Count -gt 0) -and ($Out -ne '')) {
                 exit
             }
             else {
-                $P1 = Get-Password
+                #passgen
+                $P1 = Get-Password 
                 $P2 = Get-Password
+                
+            
                 $ScriptJob = Invoke-Command -FilePath $Script -ArgumentList $Admin, $P1, $P2 -Session $Session -AsJob
                 Write-Host "[INFO: $Script - $($Session.ComputerName)] Created $($Admin):$($P2)" -ForegroundColor Magenta
                 Write-Host "[INFO: $Script - $($Session.ComputerName)] Changed all users to $P1" -ForegroundColor Magenta
@@ -244,7 +324,6 @@ if (($Script -ne '') -and ($global:Sessions.Count -gt 0) -and ($Out -ne '')) {
                 $Jobs[$i] | Receive-Job | Out-File "$Out\$($Jobs[$i].Location).$Extension" -Encoding utf8
                 Write-Host "[INFO: $Script] Script completed on $($Jobs[$i].Location) logged to $Extension" -ForegroundColor Green
                 $Complete += $($Jobs[$i].Location)
-                #Get-Job
             }
             elseif ($Jobs[$i].State -eq "Running" -and $Complete -notcontains $Jobs[$i].Location){
                 $IncompleteJobs += $Jobs[$i]
