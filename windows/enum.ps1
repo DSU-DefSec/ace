@@ -42,7 +42,6 @@ $ServiceInfo = @(
     @{ Name = "VNC Server"; Path = "C:\Program Files\RealVNC\VNC Server"; Port = 5900 },
     @{ Name = "WinRM"; Path = "C:\Windows\System32\winrm.cmd"; Port = 5985 },
     @{ Name = "Syslog"; Path = "C:\Program Files\Syslog"; Port = 514 }
-    @{ Name = "Remote Registry"; Path = "C:\Windows\System32\regsvc.dll"; Port = 0 }
 )
 
 Write-Output "`n===================================="
@@ -65,28 +64,46 @@ try {
     "Build Number" = $OSInfo.BuildNumber
 } | Format-Table -AutoSize
 
-Write-Host "`nWindows Firewall Status:" -ForegroundColor Cyan
+Write-Output "`n===================================="
+Write-Output "======> Host Firewall Status <======"
+Write-Output "====================================`n"
 
-$firewallStatus = netsh advfirewall show allprofiles state
+$lines = (netsh advfirewall show allprofiles state) -split "`r`n"
 
 $profiles = @("Domain Profile", "Private Profile", "Public Profile")
 
 foreach ($profile in $profiles) {
-    $match = $firewallStatus | Select-String "${profile}:\s+(ON|OFF)"
-    if ($match) {
-        $state = $match.Matches.Groups[1].Value
-        $color = if ($state -eq "ON") { "Green" } else { "Red" }
-        Write-Host "$profile`: " -NoNewline
-        Write-Host "$state" -ForegroundColor $color
+    $profileLine = $lines | Where-Object { $_ -match "$profile Settings:" }
+    
+    if ($profileLine) {
+        $profileIndex = $lines.IndexOf($profileLine)
+        
+        for ($i = 1; $i -le 3; $i++) {
+            if ($profileIndex + $i -lt $lines.Count) {
+                $stateLine = $lines[$profileIndex + $i]
+                if ($stateLine -match "State\s+(\w+)") {
+                    $state = $matches[1]
+                    if ($state -eq "ON") {
+                        Write-Host "$profile`: $state" -ForegroundColor Green
+                    } elseif ($state -eq "OFF") {
+                        Write-Host "$profile`: $state" -ForegroundColor Red
+                    } else {
+                        Write-Host "$profile`: Unknown ($state)" -ForegroundColor Yellow
+                    }
+                    break
+                }
+            }
+        }
     } else {
-        Write-Host "$profile`: Unable to determine status" -ForegroundColor Yellow
+        Write-Host "$profile`: N\A" -ForegroundColor Yellow
     }
 }
 
+Write-Output "`n===================================="
+Write-Output "===> Defender Antivirus Status <===="
+Write-Output "====================================`n"
 
 $defenderStatus = Get-MpComputerStatus | Select-Object AntivirusEnabled, RealTimeProtectionEnabled, IoavProtectionEnabled, AntispywareEnabled
-
-Write-Host "`nWindows Defender Status:" -ForegroundColor Cyan
 
 $defenderStatus.PSObject.Properties | ForEach-Object {
     $color = if ($_.Value -eq $true) { "Green" } else { "Red" }
@@ -129,10 +146,7 @@ $InstalledPrograms = Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVe
 $InstalledPrograms | Sort-Object DisplayName | Format-Table -AutoSize
 
 
-
-Write-Host "Scanning for active services..." -ForegroundColor Yellow
-
-$ActivePorts = Get-NetTCPConnection | Where-Object { $_.State -eq 'Listen' } | Select-Object LocalPort
+$ActivePorts = Get-NetTCPConnection | Where-Object { $_.State -eq 'Listen' -or  $_.State -eq 'Established' } | Select-Object LocalPort
 
 $Results = @()
 
@@ -161,7 +175,7 @@ Write-Output "`n===================================="
 Write-Output "========> Service Status <=========="
 Write-Output "===================================="
 $Results | Where-Object { $_.Exists -or $_.Up } | Select-Object Name, Exists, Listening, Port, Filepath, Status | Format-Table -AutoSize
-Write-Host "Enumeration Complete!" -ForegroundColor Green
+Write-Host "`nEnumeration Complete!" -ForegroundColor Green
 
 $EndTime = Get-Date
-Write-Output "`nScript Execution Time: $(($EndTime - $StartTime).TotalSeconds) seconds"
+Write-Output "Script Execution Time: $(($EndTime - $StartTime).TotalSeconds) seconds`n`n"
