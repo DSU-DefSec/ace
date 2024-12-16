@@ -49,34 +49,6 @@ function Get-Password {
     return "Password1!"
 }
 
-function Test-Port {
-    Param(
-        [string]$Ip,
-        [int]$Port,
-        [int]$Timeout = 3000
-    )
-
-    $tcpclient = $null
-    try {
-        $tcpclient = New-Object System.Net.Sockets.TcpClient
-        $iar = $tcpclient.BeginConnect($Ip, $Port, $null, $null)
-        $wait = $iar.AsyncWaitHandle.WaitOne($Timeout, $false)
-
-        if ($wait) {
-            $tcpclient.EndConnect($iar) | Out-Null
-            return $true
-        } else {
-            return $false
-        }
-    } catch {
-        return $false
-    } finally {
-        if ($tcpclient) {
-            $tcpclient.Close()
-        }
-    }
-}
-
 <#function Test-Port {
     Param(
         [string]$Ip,

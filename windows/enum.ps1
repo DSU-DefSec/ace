@@ -147,7 +147,7 @@ $InstalledPrograms | Sort-Object DisplayName | Format-Table -AutoSize
 
 
 $ActivePorts = Get-NetTCPConnection | Where-Object { $_.State -eq 'Listen' -or  $_.State -eq 'Established' } | Select-Object LocalPort
-
+a
 $Results = @()
 
 foreach ($Service in $ServiceInfo) {
