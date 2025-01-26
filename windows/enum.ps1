@@ -1,5 +1,10 @@
 $StartTime = Get-Date
 
+if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")) {
+    Write-Host "Error: This script must be run as Administrator for full enumeration." -ForegroundColor Red
+}
+
+
 $ServiceInfo = @(
     # Web Servers
     @{ Name = "IIS Web"; Path = "C:\inetpub\wwwroot"; Port = 80 },
@@ -103,12 +108,38 @@ Write-Output "`n===================================="
 Write-Output "===> Defender Antivirus Status <===="
 Write-Output "====================================`n"
 
-$defenderStatus = Get-MpComputerStatus | Select-Object AntivirusEnabled, RealTimeProtectionEnabled, IoavProtectionEnabled, AntispywareEnabled
+try {
+    $defenderExceptions = @{
+        Processes = (Get-MpPreference | Select-Object -ExpandProperty ExclusionProcess)
+        Paths = (Get-MpPreference | Select-Object -ExpandProperty ExclusionPath)
+        Extensions = (Get-MpPreference | Select-Object -ExpandProperty ExclusionExtension)
+        IPAddresses = (Get-MpPreference | Select-Object -ExpandProperty ExclusionIpAddress)
+    }
 
-$defenderStatus.PSObject.Properties | ForEach-Object {
-    $color = if ($_.Value -eq $true) { "Green" } else { "Red" }
-    Write-Host "$($_.Name): $($_.Value)" -ForegroundColor $color
+    $defenderStatus = Get-MpComputerStatus | Select-Object AntivirusEnabled, RealTimeProtectionEnabled, IoavProtectionEnabled, AntispywareEnabled
+
+    Write-Host "Windows Defender Status:" -ForegroundColor Cyan
+    $defenderStatus.PSObject.Properties | ForEach-Object {
+        $color = if ($_.Value -eq $true) { "Green" } else { "Red" }
+        Write-Host "$($_.Name): $($_.Value)" -ForegroundColor $color
+    }
+
+    Write-Host "`nWindows Defender Exceptions:" -ForegroundColor Cyan
+    $defenderExceptions.GetEnumerator() | ForEach-Object {
+        Write-Host "`n$($_.Key) Exceptions:" -ForegroundColor Yellow
+        if ($_.Value) {
+            $_.Value | ForEach-Object { 
+                Write-Host "- $_" -ForegroundColor White
+            }
+        } else {
+            Write-Host "No exceptions found." -ForegroundColor Gray
+        }
+    }
+
+} catch {
+    Write-Host "Defender returned an error. Likely not working." -ForegroundColor Red
 }
+
 
 
 Write-Output "`n===================================="
@@ -147,7 +178,7 @@ $InstalledPrograms | Sort-Object DisplayName | Format-Table -AutoSize
 
 
 $ActivePorts = Get-NetTCPConnection | Where-Object { $_.State -eq 'Listen' -or  $_.State -eq 'Established' } | Select-Object LocalPort
-a
+
 $Results = @()
 
 foreach ($Service in $ServiceInfo) {
