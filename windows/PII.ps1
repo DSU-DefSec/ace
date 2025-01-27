@@ -1,3 +1,5 @@
+# Malachi Reynolds - Spring 2024 - Dakota State University
+
 $format = @("\d{3}[)]?[-| |.]\d{3}[-| |.]\d{4}", "\d{3}[-| |.]\d{2}[-| |.]\d{4}", "\s[A|a]ve[\s|.]", "[A|a]venue", "\s[S|s]t[\s|.]", "[S|s]treet", "\s[B|b]lvd[\s|.]", "[B|b]oulevard", "\s[R|r]d[\s|.]", "[R|r]oad", "\s[D|d]r[\s|.]", "[D|d]rive", "[C|c]ourt", "\s[C|c]t[\s|.]", "[L|l]ane", "[L|l]n[\s|.]", "[W|w]ay")
 $ErrorActionPreference = "SilentlyContinue"
 

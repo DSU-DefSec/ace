@@ -1,4 +1,34 @@
-# Get the current domain name
+# Jackson Heiberger - Spring 2024 - Dakota State University
+
+$logFile = "C:\ADSetup_$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
+function Write-Log {
+    param($message)
+    $logMessage = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') - $message"
+    Add-Content -Path $logFile -Value $logMessage
+    Write-Host $logMessage
+}
+function Get-ComputersInOU {
+    param (
+        [string]$OUPath
+    )
+    Get-ADComputer -Filter * -SearchBase $OUPath | Select-Object Name, DistinguishedName
+}
+
+if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")) {
+    Write-Host "Error: This script must be run as Administrator." -ForegroundColor Red
+    Exit 1
+}
+Write-Log "Running as Administrator..." -ForegroundColor Green
+$DC = $false
+if (Get-WmiObject -Class Win32_ComputerSystem | Where-Object {$_.DomainRole -ge 4}) {
+    $DC = $true
+    Write-Log "Script running on domain controller..." -ForegroundColor Green
+}
+if (-not $DC) {
+    Write-Log "This script must be run on a domain controller." -ForegroundColor Red
+    Exit
+}
+
 $domain = ([System.DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain()).Name
 
 $domainStr = $domain -Split "\."
@@ -19,16 +49,11 @@ $DComps = (Get-ADComputer -Filter * -SearchBase "CN=Computers$domainPathStr" -Pr
 $DCompsIP = $DComps.IPv4Address
 
 #Make New OUs
-#Domain Computers
 New-ADOrganizationalUnit -Name "Domain Computers"
-
-#Domain Servers (In Domain Computers)
 New-ADOrganizationalUnit -Name "Domain Servers" -Path "OU=Domain Computers$domainPathStr"
-
-#Domain Clients (In Domain Computers)
 New-ADOrganizationalUnit -Name "Domain Clients" -Path "OU=Domain Computers$domainPathStr"
 
-Write-Host "OUs created successfully"
+Write-Log "OUs created successfully"
 
 $serverCount = 0
 $clientCount = 0
@@ -45,13 +70,13 @@ Foreach ($Computer in $DComps) {
     }
 }
 
-Write-Host "$serverCount servers and $clientCount clients moved successfully."
+Write-Log "$serverCount servers and $clientCount clients moved successfully."
 #Create Group Policy Objects and Link to new OUs
 New-GPO -Name "Domain Computers Policy" | New-GPLink -Target "OU=Domain Computers$domainPathStr" -LinkEnabled Yes | Out-Null
 New-GPO -Name "Domain Servers Policy" | New-GPLink -Target "OU=Domain Servers,OU=Domain Computers$domainPathStr" -LinkEnabled Yes | Out-Null
 New-GPO -Name "Domain Clients Policy" | New-GPLink -Target "OU=Domain Clients,OU=Domain Computers$domainPathStr" -LinkEnabled Yes | Out-Null
 
-Write-Host "GPOs created and inked successfully"
+Write-Log "GPOs created and linked successfully"
 
 #Set Default Domain Group Policy
 $PolicyStore = "$domain\Default Domain Policy"
@@ -61,7 +86,7 @@ New-NetFirewallRule -PolicyStore $PolicyStore -DisplayName "Ping In" -Profile An
 New-NetFirewallRule -PolicyStore $PolicyStore -DisplayName "CCS Out" -Profile Any -Direction Outbound -Protocol TCP -RemotePort 80,443 -RemoteAddress 10.120.0.111 -Program "C:\CCS.exe" -Action Allow | Out-Null
 New-NetFirewallRule -PolicyStore $PolicyStore -DisplayName "DNS Out" -Profile Any -Direction Outbound -Protocol UDP -RemotePort 53 -RemoteAddress dns -Action Allow | Out-Null
 
-Write-Host "All-Domain Firewall Rules Done"
+Write-Log "All-Domain Firewall Rules Done"
 
 #Set Default Domain Controller Group Policy
 $PolicyStore = "$domain\Default Domain Controllers Policy"
@@ -89,7 +114,7 @@ New-NetFirewallRule -PolicyStore $PolicyStore -DisplayName "UDP DC File Replicat
 New-NetFirewallRule -PolicyStore $PolicyStore -DisplayName "UDP DC File Replication Out" -Profile Any -Direction Outbound -Protocol UDP -RemotePort 138 -RemoteAddress $DCIP -Action Allow | Out-Null
 New-NetFirewallRule -PolicyStore $PolicyStore -DisplayName "Web Out" -Direction Outbound -Protocol TCP -RemotePort 80,443 -Program "C:\Program Files\Mozilla Firefox\firefox.exe" -Profile Any -Action Allow -Enabled False | Out-Null
 
-Write-Host "Domain Controllers Firewall Rules Done"
+Write-Log "Domain Controllers Firewall Rules Done"
 
 #Set Domain Computers Group Policy
 $PolicyStore = "$domain\Domain Computers Policy"
@@ -105,7 +130,7 @@ New-NetFirewallRule -PolicyStore $PolicyStore -DisplayName "RPC Map/WMI to DC" -
 New-NetFirewallRule -PolicyStore $PolicyStore -DisplayName "RPC Map/WMI from DC" -Profile Any -Direction Inbound -Protocol TCP -LocalPort 135 -RemoteAddress $DCIP -Action Allow | Out-Null
 New-NetFirewallRule -PolicyStore $PolicyStore -DisplayName "W32Time to DC" -Profile Any -Direction Outbound -Protocol UDP -RemotePort 123 -RemoteAddress $DCIP -Action Allow | Out-Null
 
-Write-Host "Domain Computers Firewall Rules Done"
+Write-Log "Domain Computers Firewall Rules Done"
 
 #Set Domain Servers Group Policy
 $PolicyStore = "$domain\Domain Servers Policy"
@@ -113,11 +138,27 @@ $PolicyStore = "$domain\Domain Servers Policy"
 New-NetFirewallRule -PolicyStore $PolicyStore -DisplayName "RDP In" -Direction Inbound -Protocol TCP -LocalPort 3389 -Program "C:\Windows\System32\svchost.exe" -Service "termservice" -Profile Any -Action Allow | Out-Null
 New-NetFirewallRule -PolicyStore $PolicyStore -DisplayName "Web Out" -Direction Outbound -Protocol TCP -RemotePort 80,443 -Program "C:\Program Files\Mozilla Firefox\firefox.exe" -Profile Any -Action Allow  -Enabled False | Out-Null
 
-Write-Host "Domain Servers Firewall Rules Done"
+Write-Log "Domain Servers Firewall Rules Done"
 
 #Set Domain Clients Group Policy
 $PolicyStore = "$domain\Domain Clients Policy"
 
 New-NetFirewallRule -PolicyStore $PolicyStore -DisplayName "Web Out" -Direction Outbound -Protocol TCP -RemotePort 80,443 -Program "C:\Program Files\Mozilla Firefox\firefox.exe" -Profile Any -Action Allow | Out-Null
 
-Write-Host "Domain Clients Firewall Rules Done"
+Write-Log "Domain Clients Firewall Rules Done"
+Write-Log "Firewall and Group Policy Complete"
+
+
+Write-Log "`nListing devices in each group:"
+
+Write-Log "`nDomain Servers:" -ForegroundColor Cyan
+Get-ComputersInOU -OUPath "OU=Domain Servers,OU=Domain Computers$domainPathStr" | Format-Table -AutoSize
+
+Write-Log "`nDomain Clients:" -ForegroundColor Cyan
+Get-ComputersInOU -OUPath "OU=Domain Clients,OU=Domain Computers$domainPathStr" | Format-Table -AutoSize
+
+Write-Log "`nComputers in default Computers container:" -ForegroundColor Cyan
+Get-ComputersInOU -OUPath "CN=Computers$domainPathStr" | Format-Table -AutoSize
+
+
+Write-Log "Script Complete!"

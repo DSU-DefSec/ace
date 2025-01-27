@@ -1,9 +1,4 @@
-$StartTime = Get-Date
-
-if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")) {
-    Write-Host "Error: This script must be run as Administrator for full enumeration." -ForegroundColor Red
-}
-
+# Malachi Reynolds - 01/26/25 - Dakota State University
 
 $ServiceInfo = @(
     # Web Servers
@@ -22,7 +17,7 @@ $ServiceInfo = @(
     @{ Name = "OpenSSH"; Path = "C:\Program Files\OpenSSH"; Port = 22 }
 
     # # Database Servers
-    @{ Name = "MySQL"; Path = "C:\Program Files\MySQL\MySQL Server 8.0"; Port = 3306 },
+    @{ Name = "MySQL"; Path = "C:\Program Files\MySQL\MySQL Server *"; Port = 3306 },
     @{ Name = "MicrosoftSQL"; Path = "C:\Program Files\Microsoft SQL Server"; Port = 1433 },
     @{ Name = "PostgreSQL"; Path = "C:\Program Files\PostgreSQL"; Port = 5432 },
     @{ Name = "MongoDB"; Path = "C:\Program Files\MongoDB\Server"; Port = 27017 },
@@ -49,22 +44,34 @@ $ServiceInfo = @(
     @{ Name = "Syslog"; Path = "C:\Program Files\Syslog"; Port = 514 }
 )
 
+$StartTime = Get-Date
+
+if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")) {
+    Write-Host "`nError: This script must be run as Administrator for full enumeration." -ForegroundColor Red
+}
+
 Write-Output "`n===================================="
 Write-Output "==> Operating System Information <=="
 Write-Output "===================================="
 
 $OSInfo = Get-CimInstance -ClassName Win32_OperatingSystem
 
+
 try {
     $Domain = (Get-ADDomain -ErrorAction Stop).DNSRoot
+    if (Get-CimInstance -Class Win32_OperatingSystem -Filter 'ProductType = "2"') {
+        $DC = $true
+    }
 } catch {
     $Domain = "N/A"
+    $DC = $false
 }
 
 [PSCustomObject]@{
     "Name"         = $OSInfo.CSName
     "OS"           = ($OSInfo.Caption -replace "Microsoft ", "")
     "Domain"       = $Domain
+    "DC"           = $DC
     "Version"      = $OSInfo.Version
     "Build Number" = $OSInfo.BuildNumber
 } | Format-Table -AutoSize
@@ -207,6 +214,9 @@ Write-Output "========> Service Status <=========="
 Write-Output "===================================="
 $Results | Where-Object { $_.Exists -or $_.Up } | Select-Object Name, Exists, Listening, Port, Filepath, Status | Format-Table -AutoSize
 Write-Host "`nEnumeration Complete!" -ForegroundColor Green
+if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")) {
+    Write-Host "Error: This script must be run as Administrator for full enumeration." -ForegroundColor Red
+}
 
 $EndTime = Get-Date
-Write-Output "Script Execution Time: $(($EndTime - $StartTime).TotalSeconds) seconds`n`n"
+Write-Output "`nScript Execution Time: $(($EndTime - $StartTime).TotalSeconds) seconds`n`n"

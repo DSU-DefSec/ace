@@ -1,3 +1,5 @@
+:: Malachi Reynolds - Fall 2023 - Dakota State University
+
 @echo off
 setlocal enabledelayedexpansion
 
