@@ -1,3 +1,5 @@
+# Jackson Heiberger - Spring 2024 - Dakota State University
+
 @ECHO OFF
 setlocal EnableDelayedExpansion
 
