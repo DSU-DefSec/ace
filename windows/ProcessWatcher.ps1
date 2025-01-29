@@ -1,22 +1,17 @@
-# Requires Administrator privileges
-#Requires -RunAsAdministrator
+# Requires -RunAsAdministrator
 
-# Initialize process tracking
 $script:allowedProcesses = @{}
 Get-Process | ForEach-Object { $script:allowedProcesses[$_.Name] = $true }
 
-# Configure popup parameters
-$popupTimeout = 5  # Seconds before auto-terminate
-$buttonYes = 6     # WScript return code for Yes
-$buttonNo = 7      # WScript return code for No
+$popupTimeout = 15  
+$buttonYes = 6     
+$buttonNo = 7      
 
-# Event action handler
 $action = {
     $processName = $event.SourceEventArgs.NewEvent.ProcessName
     $processId = $event.SourceEventArgs.NewEvent.ProcessId
 
     if (-not $allowedProcesses.ContainsKey($processName)) {
-        # Create interactive popup
         $popupMessage = @"
 ALARM! NEW PROCESS HAS STARTED!
 Name: $processName
@@ -29,7 +24,7 @@ Allow this process?
             $popupMessage,
             $popupTimeout,
             "Security Control - $processName",
-            0x34 -bor 0x1000 # 0x4 (Yes/No) + 0x30 (Question icon)
+            0x34 -bor 0x1000
         )
 
         switch ($response) {
@@ -45,7 +40,6 @@ Allow this process?
     }
 }
 
-# Register WMI event watcher
 $query = "SELECT * FROM Win32_ProcessStartTrace"
 $eventParams = @{
     Query          = $query
@@ -55,14 +49,12 @@ $eventParams = @{
 }
 Register-CimIndicationEvent @eventParams | Out-Null
 
-# Keep console active
 Write-Host "Process Monitor Active (Ctrl+C to exit)..."
 Write-Host "Allowed processes: $($script:allowedProcesses.Count)"
 try {
     while ($true) { Start-Sleep -Seconds 1 }
 }
 finally {
-    # Cleanup event registration
     Unregister-Event -SourceIdentifier "ProcessMonitor"
     Get-EventSubscriber | Where-Object SourceIdentifier -eq "ProcessMonitor" | Unregister-Event
 }
