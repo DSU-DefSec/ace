@@ -1,0 +1,40 @@
+services:
+  # palo:
+  #   esx:
+  #   dc:
+  #   dns:
+  #   email:
+  #   ssh:
+  #   http:
+  #   pop:
+  #   smtp:
+
+  # cisco:
+  #   esx:
+  #   dc:
+  #   dns:
+  #   email:
+  #   ssh:
+  #   http:
+  #   pop:
+  #   smtp:
+
+  # pfSense:
+  #   esx:
+  #   dc:
+  #   dns:
+  #   email:
+  #   ssh:
+  #   http:
+  #   pop:
+  #   smtp:
+
+  # wrccdc_fw:
+  #   esx:
+  #   dc:
+  #   dns:
+  #   email:
+  #   ssh:
+  #   http:
+  #   pop:
+  #   smtp:

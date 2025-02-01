@@ -1,0 +1,17 @@
+---
+- name: ESXI snapshot
+  hosts: esxi
+  ignore_errors: true
+  connection: ssh
+  gather_facts: false
+  roles:
+    - dsu.ccdc.esxi
+  vars:
+    esxi_user: root
+  # strategy: free
+
+  tasks:
+    - name: Snapshot
+      ansible.builtin.import_role:
+        name: dsu.ccdc.esxi
+        tasks_from: snapshot

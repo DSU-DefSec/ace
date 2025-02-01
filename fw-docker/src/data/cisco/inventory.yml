@@ -1,0 +1,20 @@
+---
+all:
+  vars:
+vftd:
+  hosts:
+    localhost:
+      ansible_user: {{ username }}
+      ansible_password: {{ password }}
+      ansible_httpapi_port: 8585
+      ansible_httpapi_use_ssl: false
+      network_value: 130.51.181.228
+  vars:
+    network_type: HOST
+
+palo:
+  hosts:
+    192.168.0.60:
+  vars:
+    ip_address: 192.168.0.60
+    api_key: ""

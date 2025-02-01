@@ -1,0 +1,46 @@
+esxi:
+  hosts:
+    1.1.1.1:
+      esxi_password:
+  vars:
+    ansible_user: root
+
+palo:
+  hosts:
+    1.1.1.1:
+      ansible_password:
+  vars:
+    ip_address:
+    fw_net:
+    fw_mask:
+    api_key:
+
+cisco:
+  hosts:
+    # CISCO_IP
+    1.1.1.1:
+      ansible_username: admin
+      ansible_password:
+      ansible_httpapi_port: 443
+      ansible_httpapi_use_ssl: true
+      ansible_httpapi_validate_certs: false
+  vars:
+    # ftd_ip:
+
+pfsense:
+  hosts:
+    1.1.1.1:
+      ansible_user: admin
+      fw_net:
+      # ansible_password: [[ PFSENSE_PW ]]
+      ansible_python_interpreter: /usr/local/bin/python3.11
+
+wrccdc_fw:
+  hosts:
+    10.100.XXX.2:
+      wan_net: 10.100.XXX.
+      wan_mask: 10.100.XXX.0/24
+      lan_net: 192.168.220.
+      lan_mask: 192.168.220.0/24
+  vars:
+    ansible_user: root

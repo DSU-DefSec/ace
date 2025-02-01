@@ -1,0 +1,24 @@
+---
+- name: Display current config
+  hosts: palo
+  connection: local
+
+  vars:
+    provider:
+      ip_address: "{{ inventory_hostname }}"
+      api_key: "{{ api_key }}"
+
+  # collections:
+  #   - paloaltonetworks.panos
+
+  tasks:
+    - name: Get all security rules
+      paloaltonetworks.panos.panos_security_rule:
+        provider: "{{ provider }}"
+        gathered_filter: "*"
+        state: gathered
+      register: sec_rules
+
+    - name: Output
+      ansible.builtin.debug:
+        msg: "{{ sec_rules }}"
