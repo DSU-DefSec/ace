@@ -1,7 +1,0 @@
-collections:
-- name: paloaltonetworks.panos
-
-# - name: pfsensible.core
-# - name: vbotka.freebsd_pf
-
-# - name: community.network.ftd_configuration

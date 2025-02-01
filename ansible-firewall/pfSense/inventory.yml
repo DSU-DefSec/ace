@@ -1,9 +1,0 @@
-pfSense:
-  wan:
-    192.168.253.85:
-  lan: 
-    10.5.1.1:
-  vars:
-    ansible_user: admin
-
-  
