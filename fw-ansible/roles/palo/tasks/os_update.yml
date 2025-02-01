@@ -1,0 +1,100 @@
+---
+- name: os_update | "Initiating Full Upgrade / Downgrade Tool"
+  ansible.builtin.debug:
+    msg: "Initiating Upgrade"
+  notify: "reboot"
+
+- name: os_update | Wait for Online Handler
+  ansible.builtin.meta: flush_handlers
+
+- name: os_update | Install Content updates
+  ansible.builtin.include_tasks:
+    file: content_update.yml
+- name: os_update | Set metadata
+  block:
+    - name: os_update | Get sw_version
+      paloaltonetworks.panos.panos_op:
+        provider: "{{ provider }}"
+        cmd: show system info
+      register: system_info
+
+    - name: os_update | Set sw_version
+      ansible.builtin.set_fact:
+        sw_version: "{{ (system_info.stdout | from_json).response.result.system['sw-version'] }}"
+
+    - name: os_update | Debug
+      ansible.builtin.debug:
+        msg: "Current software version is: {{ sw_version }}"
+
+
+- name: os_update | "Debug Parameters"
+  ansible.builtin.debug:
+    msg: "Upgrade / Downgrade called with parameters: {{ sw_version }} -> {{ desired_version }}"
+
+- name: os_update | Check for bail out
+  when: (sw_version != desired_version)
+  block:
+    - name: os_update | Setup Code Revisions Major List
+      ansible.builtin.set_fact:
+        major_versions: "{{ palo_code_revisions.keys() | list }}"
+
+    - name: os_update | Set Desired Major Release
+      ansible.builtin.set_fact:
+        desired_major: "{{ major_versions | select('version', desired_version, '<=') | list | last }}"
+        current_major: "{{ major_versions | select('version', sw_version, '<=') | list | last }}"
+
+    - name: os_update | Set Desired Minor Version
+      # palo_code_revisions contains a dict of major versions with the latest minor versions
+      # in most cases, we want to install the latest minor release. However, the user
+      # may specify any minor release they want, so capture that here
+      ansible.builtin.set_fact:
+        palo_code_revisions: "{{ palo_code_revisions | combine({desired_major: desired_version}) }}"
+
+    - name: os_update | Setup Possible Upgrade Paths
+      ansible.builtin.set_fact:
+        upgrade_path: "{{ major_versions | select('version', current_major, '>') | list }}"
+
+    - name: os_update | Setup Possible Downgrade Paths
+      ansible.builtin.set_fact:
+        downgrade_path: "{{ major_versions | select('version', current_major, '<') | list }}"
+
+    - name: os_update | Create Downgrade Plan
+      ansible.builtin.set_fact:
+        version_sequence: "{{ downgrade_path | select('version', desired_major, '>=') | reverse | list }}"
+      when: current_major is version(desired_major, '>')
+
+    - name: os_update | Create Upgrade Plan
+      ansible.builtin.set_fact:
+        version_sequence: "{{ upgrade_path | select('version', desired_major, '<=') | list }}"
+      when: current_major is version(desired_major, '<')
+
+    - name: os_update | Set Minor Upgrade Plan
+      ansible.builtin.set_fact:
+        version_sequence: "{{ [current_major] }}"
+      when: current_major == desired_major
+
+    - name: os_update | Debug Version Sequence
+      ansible.builtin.debug:
+        msg: "VS is {{ version_sequence }}"
+
+    - name: os_update | Wait for Service Restart Handler
+      ansible.builtin.meta: flush_handlers
+
+    - name: os_update | Kicking off Upgrade / Downgrade Plan
+      ansible.builtin.include_tasks: install_panos_version.yml
+      loop: "{{ version_sequence }}"
+      loop_control:
+        loop_var: major_version
+
+    - name: os_update | Wait for final auto-commit
+      paloaltonetworks.panos.panos_op:
+        provider: "{{ provider }}"
+        cmd: "show jobs all"
+      register: all_jobs
+      until: |
+        all_jobs is not failed
+        and (all_jobs.stdout | from_json | json_query("response.result.job|[@][]") | default([], true) | length > 0)
+        and (all_jobs.stdout | from_json | json_query("response.result.job|[@][]")
+        | json_query("[?status != 'FIN']") | length == 0)
+      retries: 250
+      delay: 2

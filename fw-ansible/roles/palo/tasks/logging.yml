@@ -1,0 +1,143 @@
+---
+# Logging stuff
+# log server and forwarding profiles
+- name: logging | Create syslog profile
+  paloaltonetworks.panos.panos_syslog_profile:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    name: wazzuh-profile
+
+- name: logging | Create syslog server
+  paloaltonetworks.panos.panos_syslog_server:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    syslog_profile: wazzuh-profile
+    name: wazuh-server
+    server: "{{ wazuh }}"
+    syslog_port: "{{ wazuh_port }}"
+    transport: "{{ wazuh_protocol | default('UDP') }}"
+
+- name: logging | Create log forwarding profile
+  paloaltonetworks.panos.panos_log_forwarding_profile:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    name: Loggie McLog Face
+    enhanced_logging: true
+
+# logging profiles
+
+- name: logging | Create log forwarding profile match list for traffic
+  paloaltonetworks.panos.panos_log_forwarding_profile_match_list:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    log_forwarding_profile: Loggie McLog Face
+    name: traffic
+    description: created by Ansible
+    log_type: traffic
+    filter: All Logs
+    syslog_profiles: [wazzuh-profile]
+
+- name: logging | Create log forwarding profile match list threat
+  paloaltonetworks.panos.panos_log_forwarding_profile_match_list:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    log_forwarding_profile: Loggie McLog Face
+    name: threat
+    description: created by Ansible
+    log_type: threat
+    filter: All Logs
+    syslog_profiles: [wazzuh-profile]
+
+- name: logging | Create log forwarding profile match list for wildfire
+  paloaltonetworks.panos.panos_log_forwarding_profile_match_list:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    log_forwarding_profile: Loggie McLog Face
+    name: wildfire
+    description: created by Ansible
+    log_type: wildfire
+    filter: All Logs
+    syslog_profiles: [wazzuh-profile]
+
+- name: logging | Create log forwarding profile match list for URL
+  paloaltonetworks.panos.panos_log_forwarding_profile_match_list:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    log_forwarding_profile: Loggie McLog Face
+    name: url
+    description: created by Ansible
+    log_type: url
+    filter: All Logs
+    syslog_profiles: [wazzuh-profile]
+
+- name: logging | Create log forwarding profile match list for data
+  paloaltonetworks.panos.panos_log_forwarding_profile_match_list:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    log_forwarding_profile: Loggie McLog Face
+    name: data
+    description: created by Ansible
+    log_type: data
+    filter: All Logs
+    syslog_profiles: [wazzuh-profile]
+
+- name: logging | Create log forwarding profile match list for GTP
+  paloaltonetworks.panos.panos_log_forwarding_profile_match_list:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    log_forwarding_profile: Loggie McLog Face
+    name: gtp
+    description: created by Ansible
+    log_type: gtp
+    filter: All Logs
+    syslog_profiles: [wazzuh-profile]
+
+- name: logging | Create log forwarding profile match list for tunnel
+  paloaltonetworks.panos.panos_log_forwarding_profile_match_list:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    log_forwarding_profile: Loggie McLog Face
+    name: tunnel
+    description: created by Ansible
+    log_type: tunnel
+    filter: All Logs
+    syslog_profiles: [wazzuh-profile]
+
+- name: logging | Create log forwarding profile match list for auth
+  paloaltonetworks.panos.panos_log_forwarding_profile_match_list:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    log_forwarding_profile: Loggie McLog Face
+    name: auth
+    description: created by Ansible
+    log_type: auth
+    filter: All Logs
+    syslog_profiles: [wazzuh-profile]
+
+- name: logging | Create log forwarding profile match list for SCTP
+  paloaltonetworks.panos.panos_log_forwarding_profile_match_list:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    log_forwarding_profile: Loggie McLog Face
+    name: sctp
+    description: created by Ansible
+    log_type: sctp
+    filter: All Logs
+    syslog_profiles: [wazzuh-profile]
+
+- name: logging | Create log forwarding profile match list for decryption
+  paloaltonetworks.panos.panos_log_forwarding_profile_match_list:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    log_forwarding_profile: Loggie McLog Face
+    name: decryption
+    description: created by Ansible
+    log_type: decryption
+    filter: All Logs
+    syslog_profiles: [wazzuh-profile]
+
+- name: logging | Set logging complete
+  ansible.builtin.set_fact:
+    palo_config_logging: false
+    cacheable: true
+  when: palo_config_logging

@@ -1,0 +1,66 @@
+---
+# Interface setup
+# Set up VLANs
+- name: interfaces | Create VLAN
+  when: palo_config_initial_interface
+  paloaltonetworks.panos.panos_vlan:
+    provider: "{{ provider }}"
+    name: default
+    gathered_filter: vlan_name
+
+# Add interfaces to zones
+- name: interfaces | Add ethernet1/1 to zone wan
+  when: palo_config_initial_interface
+  paloaltonetworks.panos.panos_interface:
+    provider: "{{ provider }}"
+    mode: layer2
+    vlan_name: default
+    zone_name: wan
+    if_name: ethernet1/1
+    gathered_filter: if_name
+
+- name: interfaces | Add ethernet1/2 to zone lan
+  when: palo_config_initial_interface
+  paloaltonetworks.panos.panos_interface:
+    provider: "{{ provider }}"
+    mode: layer2
+    vlan_name: default
+    zone_name: lan
+    if_name: ethernet1/2
+    gathered_filter: if_name
+
+- name: interfaces | Add ethernet1/6 to zone mgt
+  when: palo_config_initial_interface and palo_physical
+  paloaltonetworks.panos.panos_interface:
+    provider: "{{ provider }}"
+    mode: layer2
+    vlan_name: default
+    zone_name: mgt
+    if_name: ethernet1/6
+    gathered_filter: if_name
+
+- name: interfaces | Add ethernet1/7 to zone mgt
+  when: palo_config_initial_interface and palo_physical
+  paloaltonetworks.panos.panos_interface:
+    provider: "{{ provider }}"
+    mode: layer2
+    vlan_name: default
+    zone_name: mgt
+    if_name: ethernet1/7
+    gathered_filter: if_name
+
+- name: interfaces | Ansible.builtin.set_fact
+  when: palo_config_initial_interface
+  ansible.builtin.set_fact:
+    palo_config_initial_interface: false
+    cacheable: true
+
+- name: interfaces | Config additional interfaces
+  paloaltonetworks.panos.panos_interface:
+    provider: "{{ provider }}"
+    mode: layer2
+    vlan_name: default
+    zone_name: "{{ item.value.zone }}"
+    if_name: "{{ item.key }}"
+    gathered_filter: if_name
+  loop: "{{ palo_zone.zones | dict2items }}"

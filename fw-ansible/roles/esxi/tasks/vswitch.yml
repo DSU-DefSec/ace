@@ -1,0 +1,30 @@
+---
+- name: vswitch | Add a VMware vswitch without any physical NIC attached
+  delegate_to: localhost
+  community.vmware.vmware_vswitch:
+    esxi_hostname: "{{ inventory_hostname }}"
+    hostname: "{{ inventory_hostname }}"
+    username: "{{ esxi_user }}"
+    password: "{{ esxi_password }}"
+    validate_certs: false
+    switch: "{{ new_net | default('protected') }}"
+    mtu: 1500
+    security:
+      promiscuous_mode: true
+      mac_changes: true
+      forged_transmits: true
+
+- name: vswitch | Add Portgroup with all settings defined
+  delegate_to: localhost
+  community.vmware.vmware_portgroup:
+    esxi_hostname: "{{ inventory_hostname }}"
+    hostname: "{{ inventory_hostname }}"
+    username: "{{ esxi_user }}"
+    password: "{{ esxi_password }}"
+    validate_certs: false
+    switch: "{{ new_net | default('protected') }}"
+    portgroup: "{{ new_net | default('protected') }}"
+    security:
+      promiscuous_mode: true
+      mac_changes: true
+      forged_transmits: true

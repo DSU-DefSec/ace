@@ -1,0 +1,44 @@
+---
+- name: wasabi_base | Allow HTTP out
+  ansible.builtin.iptables:
+    chain: FORWARD
+    source: "{{ lan_mask }}"
+    destination_port: 80
+    protocol: tcp
+    jump: ACCEPT
+
+- name: wasabi_base | Allow HTTPS out
+  ansible.builtin.iptables:
+    chain: FORWARD
+    source: "{{ lan_mask }}"
+    destination_port: 443
+    protocol: tcp
+    jump: ACCEPT
+
+- name: wasabi_base | Allow DNS out
+  ansible.builtin.iptables:
+    chain: FORWARD
+    source: "{{ dns_srv }}"
+    destination_port: 53
+    protocol: udp
+    jump: ACCEPT
+
+- name: wasabi_base | Anti-lockout
+  ansible.builtin.iptables:
+    chain: FORWARD
+    destination: "{{ inventory_hostname }}"
+    destination_port: 22
+    protocol: tcp
+    jump: ACCEPT
+
+- name: wasabi_base | Allow esablished/related FORWARD
+  ansible.builtin.iptables:
+    chain: FORWARD
+    ctstate: ESTABLISHED, RELATED
+    jump: ACCEPT
+
+- name: wasabi_base | Allow esablished/related INPUT
+  ansible.builtin.iptables:
+    chain: INPUT
+    ctstate: ESTABLISHED, RELATED
+    jump: ACCEPT

@@ -1,0 +1,28 @@
+---
+- name: update_nic | Get all vm info
+  delegate_to: localhost
+  community.vmware.vmware_vm_info:
+    hostname: "{{ inventory_hostname }}"
+    username: "{{ esxi_user }}"
+    password: "{{ esxi_password }}"
+    validate_certs: false
+  register: vm_info
+
+- name: update_nic | Print VM Info
+  ansible.builtin.debug:
+    var: vm_info
+
+- name: update_nic | Change nic for VMs
+  when: item.mac_address[1] is not defined
+  community.vmware.vmware_guest:
+    hostname: "{{ inventory_hostname }}"
+    username: "{{ esxi_user }}"
+    password: "{{ esxi_password }}"
+    validate_certs: false
+    name: "{{ item.guest_name }}"
+    # name: test
+    networks:
+      - name: "{{ new_net | default('protected') }}"
+  register: new_nic
+  delegate_to: localhost
+  loop: "{{ vm_info.virtual_machines | list }}"

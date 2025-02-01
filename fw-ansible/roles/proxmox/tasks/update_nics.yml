@@ -1,0 +1,13 @@
+---
+- name: update_nics | List all existing virtual machines on node
+  community.general.proxmox_vm_info:
+    api_host: "{{ ip_address }}"
+    api_user: "{{ proxmox_user }}"
+    api_password: "{{ api_password }}"
+    node: node01
+
+- name: update_nics | Update NICs
+  community.general.proxmox:
+    api_host: "{{ ip_address }}"
+    api_user: "{{ proxmox_user }}"
+    api_password: "{{ api_password }}"

@@ -1,0 +1,35 @@
+---
+# Services
+# Add HTTP service only port 80
+- name: service_group | Add http only on port 80 service
+  paloaltonetworks.panos.panos_service_object:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    name: service-http-80
+    protocol: tcp
+    destination_port: "80"
+
+- name: service_group | Add proxy
+  paloaltonetworks.panos.panos_service_object:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    name: service-proxy
+    protocol: tcp
+    destination_port: "{{  proxy_port | default('8080') }}"
+
+# Service groups
+# Add web service group
+- name: service_group | Create Web service object
+  paloaltonetworks.panos.panos_service_group:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    name: service-web
+    value: [service-http-80, service-http]
+
+# Windows servers services group
+- name: service_group | Create Windows server service object
+  paloaltonetworks.panos.panos_application_group:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    name: windc
+    value: [ldap, ms-ds-smb, active-directory]

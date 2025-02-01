@@ -1,0 +1,11 @@
+---
+- name: restore | Save current state of the firewall
+  community.general.iptables_state:
+    state: restored
+    path: /etc/sysconfig/iptables.rules
+- name: restore | restore file
+  deligate_to: localhost
+  ansible.builtin.fetch:
+    src: /etc/sysconfig/iptables.rules
+    dest: /home/ansible/data/backup/firewall/
+    flat: true

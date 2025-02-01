@@ -1,0 +1,41 @@
+---
+- name: snapshot | Get all vm info
+  delegate_to: localhost
+  community.vmware.vmware_vm_info:
+    hostname: "{{ inventory_hostname }}"
+    username: "{{ esxi_user }}"
+    password: "{{ esxi_password }}"
+    validate_certs: false
+  register: vm_info
+
+- name: snapshot | ESXI Snapshot
+  delegate_to: localhost
+  community.vmware.vmware_guest_snapshot:
+    hostname: "{{ inventory_hostname }}"
+    username: "{{ esxi_user }}"
+    password: "{{ esxi_password }}"
+    datacenter: "{{ item.datacenter }}"
+    folder: "{{ item.folder }}"
+    validate_certs: false
+    name: "{{ item.guest_name }}"
+    state: present
+    snapshot_name: "{{ lookup('pipe', 'date +%H:%M:%S---%Y-%m-%d') }}"
+  loop: "{{ vm_info.virtual_machines | list }}"
+
+- name: snapshot | Get snapshot info
+  delegate_to: localhost
+  community.vmware.vmware_guest_snapshot_info:
+    hostname: "{{ inventory_hostname }}"
+    username: "{{ esxi_user }}"
+    password: "{{ esxi_password }}"
+    datacenter: "{{ item.datacenter }}"
+    folder: "{{ item.folder }}"
+    validate_certs: false
+    name: "{{ item.guest_name }}"
+  loop: "{{ vm_info.virtual_machines | list }}"
+  register: snapshot_info
+
+- name: snapshot | Print snapshot info
+  ansible.builtin.debug:
+    var: snapshot_info
+  loop: "{{ vm_info.virtual_machines | list }}"

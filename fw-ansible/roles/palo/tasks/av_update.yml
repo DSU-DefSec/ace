@@ -1,0 +1,107 @@
+---
+- name: av_update | Check latest AV
+  # Get an updated dynamic av list
+  paloaltonetworks.panos.panos_op:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    cmd: request anti-virus upgrade check
+  register: check
+
+- name: av_update | Get AV info
+  # Get the current AV version
+  paloaltonetworks.panos.panos_op:
+    provider: "{{ provider }}"
+    cmd: request anti-virus upgrade info
+  register: info
+
+- name: av_update | Debug
+  ansible.builtin.debug:
+    msg: "{{ info.stdout }}"
+
+- name: av_update | Set fact for parsed JSON data
+  ansible.builtin.set_fact:
+    parsed_data: "{{ info.stdout | from_json }}"
+
+- name: av_update | Extract relevant details from parsed data
+  ansible.builtin.set_fact:
+    av_updates: >-
+      {{ parsed_data.response.result['content-updates'].entry
+      | map(attribute='version')
+      | list }}
+    downloaded_updates: >-
+      {{ parsed_data.response.result['content-updates'].entry
+      | selectattr('downloaded', 'equalto', 'yes')
+      | map(attribute='version')
+      | list }}
+    current_update: >-
+      {{ parsed_data.response.result['content-updates'].entry
+      | selectattr('current', 'equalto', 'yes')
+      | map(attribute='version')
+      | first
+      | default() }}
+    latest_update: >-
+      {{ parsed_data.response.result['content-updates'].entry
+      | sort(attribute='released-on', reverse=True)
+      | map(attribute='version')
+      | first }}
+
+- name: av_update | Show extracted data
+  ansible.builtin.debug:
+    msg:
+      - "All Versions: {{ av_updates }}"
+      - "Downloaded Versions: {{ downloaded_updates }}"
+      - "Current Version: {{ current_update }}"
+      - "Latest Version: {{ latest_update }}"
+      - "Need to download: {{ (latest_update != current_update) }}"
+
+- name: av_update | Download and Install
+  when: (latest_update != current_update)
+  block:
+    - name: av_update | Download latest AV
+      # Download the latest version
+      paloaltonetworks.panos.panos_op:
+        provider: "{{ provider }}"
+        device_group: "{{ device_group if device_group is defined else omit }}"
+        cmd: request anti-virus upgrade download latest
+      register: download
+
+    - name: av_update | Content update result
+      ansible.builtin.debug:
+        msg:
+          - JobID: "{{ (download.stdout | from_json).response.result.job }}"
+
+    - name: av_update | Check anti-virus download result
+      # wait for this job to finish
+      paloaltonetworks.panos.panos_op:
+        provider: "{{ provider }}"
+        cmd: show jobs id {{ (download.stdout | from_json).response.result.job }}
+      register: download_job
+      until: download_job is not failed and (download_job.stdout | from_json).response.result.job.status == 'FIN'
+      retries: 75
+      delay: 5
+
+    - name: av_update | Install latest anti-virus
+      # Content is downloaded and ready, now install it
+      paloaltonetworks.panos.panos_op:
+        provider: "{{ provider }}"
+        cmd: request anti-virus upgrade install version latest
+      register: av_install
+
+    - name: av_update | AV update result
+      ansible.builtin.debug:
+        msg: "{{ av_install.stdout }}"
+
+    - name: av_update | Check anti-virus install result
+      # again, wait for job to complete
+      paloaltonetworks.panos.panos_op:
+        provider: "{{ provider }}"
+        device_group: "{{ device_group if device_group is defined else omit }}"
+        cmd: show jobs id {{ (av_install.stdout | from_json).response.result.job }}
+      register: av_install_job
+      until: av_install_job is not failed and (av_install_job.stdout | from_json).response.result.job.status == 'FIN'
+      retries: 150
+      delay: 2
+
+    - name: av_update | AV update result
+      ansible.builtin.debug:
+        msg: "{{ av_install_job.stdout }}"

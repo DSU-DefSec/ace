@@ -1,0 +1,9 @@
+---
+- name: all_updates | Update content
+  ansible.builtin.import_tasks: content_update.yml
+
+- name: all_updates | Update anti-virus
+  ansible.builtin.import_tasks: av_update.yml
+
+- name: all_updates | Update wildfire
+  ansible.builtin.import_tasks: wildfire_update.yml

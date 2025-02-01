@@ -1,0 +1,19 @@
+---
+- name: commit | Check for pending changes
+  paloaltonetworks.panos.panos_op:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    cmd: show config list changes
+  register: changes
+
+- name: commit | Display changes
+  ansible.builtin.debug:
+    msg: "{{ changes.stdout | from_json }}"
+
+- name: commit | Commit changes if needed
+  paloaltonetworks.panos.panos_commit_firewall:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+  when: >-
+    (changes.stdout | from_json).response.result.journal is defined and
+    (changes.stdout | from_json).response.result.journal.entry | length > 0

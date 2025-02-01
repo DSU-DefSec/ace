@@ -1,0 +1,122 @@
+---
+- name: palo_local | Block WAN to ESXI
+  when: services.palo.esx is defined
+  paloaltonetworks.panos.panos_security_rule:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    rule_name: inbound-esx{{ item.key }}
+    source_zone: ["{{ alias.wan | default('wan') }}"]
+    source_ip: [any]
+    destination_zone: ["{{ item.value if item.value is not none else alias.lan | default('lan') }}"]
+    destination_ip: ["{{ item.value.ip |  default(lan_net ~ item.key) }}"]
+    application: [any]
+    action: deny
+    location: before
+    existing_rule: tmp-block
+    group_profile: security
+    log_start: true
+    log_end: true
+    log_setting: Loggie McLog Face
+    tag_name: [Block]
+  loop: "{{ services.palo.esx | dict2items }}"
+
+- name: palo_local | Block WAN to DC
+  paloaltonetworks.panos.panos_security_rule:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    rule_name: inbound-dc{{ item.key }}
+    source_zone: ["{{ alias.wan | default('wan') }}"]
+    source_ip: [any]
+    destination_zone: ["{{ item.value if item.value is not none else alias.lan | default('lan') }}"]
+    destination_ip: ["{{ item.value.ip |  default(lan_net ~ item.key) }}"]
+    application: [windc]
+    action: deny
+    location: before
+    existing_rule: tmp-block
+    group_profile: security
+    log_start: true
+    log_end: true
+    log_setting: Loggie McLog Face
+    tag_name: [Block]
+  loop: "{{ services.palo.dc | dict2items }}"
+
+- name: palo_local | LAN to DC
+  paloaltonetworks.panos.panos_security_rule:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    rule_name: lan-windc{{ item.key }}
+    source_zone: ["{{ alias.lan | default('lan') }}"]
+    source_ip: [any]
+    destination_zone: ["{{ item.value if item.value is not none else alias.lan | default('lan') }}"]
+    destination_ip: ["{{ item.value.ip |  default(lan_net ~ item.key) }}"]
+    application: [windc]
+    action: allow
+    location: before
+    existing_rule: tmp-block
+    group_profile: security
+    log_start: true
+    log_end: true
+    log_setting: Loggie McLog Face
+    tag_name: [Service, local]
+  loop: "{{ services.palo.dc | dict2items }}"
+
+- name: palo_local | LAN to ESXI
+  when: services.palo.esx is defined
+  paloaltonetworks.panos.panos_security_rule:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    rule_name: lan-esx{{ item.key }}
+    source_zone: ["{{ alias.lan | default('lan') }}"]
+    source_ip: [any]
+    destination_zone: ["{{ item.value if item.value is not none else alias.lan | default('lan') }}"]
+    destination_ip: ["{{ item.value.ip |  default(lan_net ~ item.key) }}"]
+    application: [vmware, ssl]
+    action: allow
+    location: before
+    existing_rule: tmp-block
+    group_profile: security
+    log_start: true
+    log_end: true
+    log_setting: Loggie McLog Face
+    tag_name: [Service, local]
+  loop: "{{ services.palo.esx | dict2items }}"
+
+- name: palo_local | LAN to remote network
+  when: remote_net is defined
+  paloaltonetworks.panos.panos_security_rule:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    rule_name: outbound-remote
+    source_zone: ["{{ alias.lan | default('lan') }}"]
+    source_ip: [any]
+    destination_zone: ["{{ alias.lan | default('wan') }}"]
+    destination_ip: "{{ remote_net | list }}"
+    application: [web-browsing, ssl, ssh, ms-rdp]
+    action: allow
+    location: before
+    existing_rule: tmp-block
+    group_profile: security
+    log_start: true
+    log_end: true
+    log_setting: Loggie McLog Face
+    tag_name: [Service, local]
+
+- name: palo_local | Remote logging network to lan
+  when: wazuh is defined and remote_net is defined
+  paloaltonetworks.panos.panos_security_rule:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    rule_name: inbound-remote
+    source_zone: ["{{ alias.wan | default('wan') }}"]
+    source_ip: "{{ remote_net | list }}"
+    destination_zone: ["{{ wazuh_zone | default('lan') }}"]
+    destination_ip: ["{{ wazuh }}"]
+    application: [wazuh-agent, syslog]
+    action: allow
+    location: before
+    existing_rule: tmp-block
+    group_profile: security
+    log_start: true
+    log_end: true
+    log_setting: Loggie McLog Face
+    tag_name: [Service, local]
