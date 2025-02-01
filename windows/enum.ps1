@@ -6,9 +6,11 @@ $ServiceInfo = @(
     @{ Name = "Apache Web"; Path = "C:\Program Files\Apache Group\Apache2"; Port = 80 },
     @{ Name = "Nginx Web"; Path = "C:\nginx"; Port = 80 },
     @{ Name = "HTTPS"; Path = "C:\inetpub\wwwroot"; Port = 443 }
+    @{ Name = "XAMPP"; Path = "C:\xampp"; Port = 80 }
 
     # File Sharing Services
     @{ Name = "FTP Server"; Path = "C:\inetpub\ftproot"; Port = 21 },
+    @{ Name = "FileZilla"; Path = "C:\Program Files\FileZilla Server\FileZilla server.exe"; Port = 21 },
     @{ Name = "SMB"; Path = "C:\Windows\System32\drivers\srv.sys"; Port = 445 },
 
     # Remote Access Services
@@ -179,7 +181,8 @@ Write-Output "===================================="
 
 $InstalledPrograms = Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* ,
     HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* |
-    Select-Object DisplayName, DisplayVersion | Where-Object { $_.DisplayName -and $_.DisplayName.Trim() -ne "" }
+    Select-Object DisplayName, DisplayVersion | Where-Object { $_.DisplayName -and $_.DisplayName.Trim() -ne "" -and
+    $_.DisplayName -notmatch "Microsoft \.NET|Microsoft Visual C\+\+|Microsoft Windows Desktop Runtime"}
 
 $InstalledPrograms | Sort-Object DisplayName | Format-Table -AutoSize
 
