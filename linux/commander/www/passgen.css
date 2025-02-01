@@ -1,0 +1,15 @@
+@import url("common.css");
+@import url("hamburger.css");
+
+section#control {
+    display: flex;
+    flex-direction: column;
+}
+
+section#output {
+    flex:1;
+}
+
+textarea#user {
+    flex:1;
+}

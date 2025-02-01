@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Script Display</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid black;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f0f0f0;
+        }
+
+        .edit-btn {
+            padding: 5px 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .edit-btn:hover {
+            background-color: #45a049;
+        }
+
+        .title {
+            text-align: center;
+        }
+
+        .param-table {
+            width: 100%;
+            border: 1px solid #ddd;
+        }
+
+        .param-table td, .param-table th {
+            padding: 5px;
+            border: 1px solid #ddd;
+        }
+
+        .param-table th {
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <h1 class="title">Script List</h1>
+    <div id="scriptContainer">Loading scripts...</div>
+
+    <script>
+        // Fetch the scripts data
+        fetch('http://localhost:8000/scripts/')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const container = document.getElementById('scriptContainer');
+                container.innerHTML = ''; // Clear loading message
+
+                // Create the table element
+                const table = document.createElement('table');
+
+                // Create the table header
+                const thead = document.createElement('thead');
+                const headerRow = document.createElement('tr');
+                const headers = ['Script', 'Description', 'Parameter', 'Edit'];
+                headers.forEach(headerText => {
+                    const th = document.createElement('th');
+                    th.textContent = headerText;
+                    headerRow.appendChild(th);  // Append th to the header row
+                });
+                thead.appendChild(headerRow);
+                table.appendChild(thead);
+
+                // Create the table body
+                const tbody = document.createElement('tbody');
+
+                // Iterate over the JSON data to create the table rows
+                data.forEach(script => {
+                    const row = document.createElement('tr');
+
+                    // Add script name
+                    const scriptNameCell = document.createElement('td');
+                    scriptNameCell.textContent = script.Name;
+                    row.appendChild(scriptNameCell);
+
+                    // Add script description
+                    const descriptionCell = document.createElement('td');
+                    descriptionCell.innerHTML = script.Desc.replace(/\n/g, '<br>');
+                    row.appendChild(descriptionCell);
+
+                    // Add script parameters (check type first)
+                    const parameterCell = document.createElement('td');
+                    if (typeof script.Params === 'string') {
+                        // If Params is a string, replace newlines
+                        parameterCell.innerHTML = script.Params.replace(/\n/g, '<br>');
+                    } else if (Array.isArray(script.Params)) {
+                        // If Params is an array, join the elements with <br>
+                        parameterCell.innerHTML = script.Params.join('<br>');
+                    } else if (typeof script.Params === 'object') {
+                        // If Params is an object, convert to a table
+                        const paramTable = document.createElement('table');
+                        paramTable.className = 'param-table';
+                        const paramTbody = document.createElement('tbody');
+                        
+                        // Create table rows for key-value pairs
+                        Object.entries(script.Params).forEach(([key, value]) => {
+                            const paramRow = document.createElement('tr');
+
+                            const keyCell = document.createElement('td');
+                            keyCell.textContent = key;
+
+                            const valueCell = document.createElement('td');
+                            valueCell.textContent = value;
+
+                            paramRow.appendChild(keyCell);
+                            paramRow.appendChild(valueCell);
+                            paramTbody.appendChild(paramRow);
+                        });
+
+                        paramTable.appendChild(paramTbody);
+                        parameterCell.appendChild(paramTable);
+                    } else {
+                        // If Params is another type, convert to string
+                        parameterCell.innerHTML = JSON.stringify(script.Params);
+                    }
+                    row.appendChild(parameterCell);
+
+                    // Add edit button
+                    const editCell = document.createElement('td');
+                    const editBtn = document.createElement('a');
+                    editBtn.href = `edit_script.html?name=${encodeURIComponent(script.Name)}`;
+                    editBtn.className = 'edit-btn';
+                    editBtn.textContent = 'Edit';
+                    editCell.appendChild(editBtn);
+                    row.appendChild(editCell);
+
+                    // Append the row to the table body
+                    tbody.appendChild(row);
+                });
+
+                // Append the table body to the table
+                table.appendChild(tbody);
+                container.appendChild(table);
+            })
+            .catch(error => {
+                document.getElementById('scriptContainer').textContent = 'Error: ' + error;
+                console.error('There was a problem with the fetch operation:', error);
+            });
+    </script>
+</body>
+</html>

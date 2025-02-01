@@ -1,0 +1,16 @@
+@import url("common.css");
+
+div#queryContainer {
+    display: flex;
+    flex-direction: row;
+    /* position: absolute;
+    z-index: 1; */
+    width: 100vw;
+    height: 5ex;
+}
+
+div#tableContainer {
+    height: calc(100vh - 5ex);
+    width: 100vw;
+    overflow: scroll;
+}

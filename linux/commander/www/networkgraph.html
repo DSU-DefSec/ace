@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cytoscape.js Example</title>
+  <script src="https://unpkg.com/cytoscape@3.21.0/dist/cytoscape.min.js"></script>
+  <style>
+    #cy {
+      width: 100%;
+      height: 600px;
+      border: 1px solid black;
+    }
+    .node-info {
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px solid black;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<div id="cy"></div>
+<div class="node-info" id="nodeInfo">
+  <h3>Node Information</h3>
+  <p id="nodeData"></p>
+</div>
+
+<script>
+  const cy = cytoscape({
+    container: document.getElementById('cy'), // container to render in
+    elements: [ // list of graph elements to start with
+      { data: { id: 'a', label: 'Node A' }, position: { x: 100, y: 100 }},
+      { data: { id: 'b', label: 'Node B' }, position: { x: 300, y: 100 }},
+      { data: { id: 'c', label: 'Node C' }, position: { x: 200, y: 300 }},
+      { data: { id: 'd', label: 'Node D' }, position: { x: 400, y: 300 }},
+      // edges
+      { data: { id: 'ab', source: 'a', target: 'b' }},
+      { data: { id: 'bc', source: 'b', target: 'c' }},
+      { data: { id: 'cd', source: 'c', target: 'd' }},
+    ],
+    style: [ // the stylesheet for the graph
+      {
+        selector: 'node',
+        style: {
+          'label': 'data(label)',
+          'background-color': '#66b2ff',
+          'width': 50,
+          'height': 50,
+          'text-valign': 'center',
+          'color': '#fff',
+          'font-size': '14px',
+          'border-width': 2,
+          'border-color': '#004080'
+        }
+      },
+      {
+        selector: 'edge',
+        style: {
+          'width': 3,
+          'line-color': '#ccc',
+          'target-arrow-color': '#ccc',
+          'target-arrow-shape': 'triangle'
+        }
+      }
+    ],
+    layout: {
+      name: 'preset' // using preset layout to set custom positions
+    }
+  });
+
+  // Event listener for node click
+  cy.on('tap', 'node', function(evt) {
+    const node = evt.target;
+    document.getElementById('nodeData').innerText = `You clicked on ${node.data('label')}!`;
+    document.getElementById('nodeInfo').style.display = 'block';
+  });
+
+  // Hide node information when clicking outside
+  cy.on('tap', function(evt) {
+    if (evt.target === cy) {
+      document.getElementById('nodeInfo').style.display = 'none';
+    }
+  });
+</script>
+
+</body>
+</html>

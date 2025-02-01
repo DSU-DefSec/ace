@@ -1,0 +1,7 @@
+{
+    "targets": ["SSH-Test"],
+    "scripts": ["test.sh"],
+    "env": {
+        "STATUS_CODE": "0"
+    }
+}

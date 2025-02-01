@@ -1,0 +1,14 @@
+@import url("common.css");
+@import url("hamburger.css");
+
+section:has(div#player) {
+    flex: 1;
+}
+
+section#job, section#box {
+    width: 15vw;
+}
+
+header > a:not([href]):has(button) {
+    display:none;
+}

@@ -1,0 +1,84 @@
+@import url("theme/dark.css");
+
+body {
+    overflow-y: hidden;
+    margin: 0;
+}
+
+header {
+    height: 10ex;
+    padding: 0 1em;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: row;
+    gap: 1em;
+    align-items: center;
+    background-color: var(--header-bg-color);
+    color: var(--header-font-color);
+}
+
+header > h1 {
+    flex: 1;
+}
+
+main {
+    display: flex;
+    flex-direction: row;
+    background-color: var(--main-bg-color);
+    height: calc(100vh - 10ex);
+    color: var(--main-font-color);
+}
+
+main > section {
+    border-right: 1pt solid var(--border-color);
+    padding: 1ex 1em;
+}
+
+section.divList {
+    overflow-y: scroll;
+}
+
+section.divList > div {
+    border-bottom: 1pt solid var(--border-color);
+}
+
+section.divList.selectable > div:hover {
+    background-color: var(--selectable-bg-color);
+    color: var(--selectable-font-color);
+}
+
+section.divList > div.selected {
+    background-color: var(--selected-bg-color);
+    color: var(--selected-font-color);
+}
+
+input.invalid {
+    border: 1pt solid red;
+}
+
+button {
+    background-color: var(--action-bg-color);
+    border: 0.5ex solid var(--border-color);
+    border-radius: 1ex;
+    padding: 1ex 1em;
+    font-size: large;
+    color: var(--action-font-color);
+}
+
+button:hover {
+    color: var(--action-hover-font-color);
+    background-color: var(--action-hover-bg-color);
+}
+
+input,textarea {
+    color: var(--input-font-color);
+    background-color: var(--input-bg-color);
+    border: 0.5ex solid var(--border-color);
+    border-radius: 1ex;
+    padding: 1ex 1em;
+}
+
+input:focus {
+    color: var(--input-focus-font-color);
+    background-color: var(--input-focus-bg-color);
+}

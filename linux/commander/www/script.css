@@ -1,0 +1,10 @@
+@import url("common.css");
+@import url("hamburger.css");
+
+section#parameter {
+    flex: 1;
+}
+
+section#script, section#box {
+    max-width: 20vw;
+}

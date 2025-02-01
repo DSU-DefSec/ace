@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Database</title>
+    <script defer src="lib/jquery-3.7.1.min.js"></script>
+    <script defer src="lib/bootstrap.bundle.min.js"></script>
+    <script defer src="lib/bootstrap-table.min.js"></script>
+    <script defer src="common.js"></script>
+    <script defer src="db.js"></script>
+    <link rel="stylesheet" href="lib/bootstrap.min.css">
+    <link rel="stylesheet" href="lib/bootstrap-table.min.css">
+    <link rel="stylesheet" href="db.css">
+</head>
+
+<body>
+    <div id="queryContainer">
+        <input id="query" class="form-control" placeholder="SELECT * FROM table">
+        <button id="execute" class="btn btn-primary">Execute</button>
+    </div>
+
+    <div id="tableContainer"></div>
+</body>
+
+</html>

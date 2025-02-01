@@ -1,0 +1,29 @@
+<!doctype HTML>
+
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<title>passgen-web</title>
+</head>
+
+<body>
+	<script src="bundle.js"></script>
+	<script src="wasm_exec.js"></script>
+	<script async defer src="index.js"></script>
+	
+	<h1>Passgen</h1>
+	<label for="secret">Secret</label>
+	<input id="secret" name="secret" type="password">
+	<br>
+
+	<label for="prefix">Prefix</label>
+	<input id="prefix" name="prefix">
+	<br>
+	
+	<textarea id="users"></textarea>
+
+	<button id="runButton">Run</button>
+</body>
+
+</html>
