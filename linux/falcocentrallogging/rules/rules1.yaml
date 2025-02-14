@@ -1,0 +1,62 @@
+- rule: Detect ls Command Execution
+  desc: Logs whenever the 'ls' command is used
+  condition: spawned_process and proc.name = "ls"
+  output: "User executed ls (user=%user.name command=%proc.cmdline)"
+  priority: INFO
+  tags: [host, command_monitoring]
+
+- rule: Detect Netcat Usage
+  desc: Alerts when 'nc' (netcat) is executed
+  condition: spawned_process and proc.name in ("nc", "ncat", "netcat")
+  output: "Potential network activity using netcat (user=%user.name command=%proc.cmdline)"
+  priority: WARNING
+  tags: [host, networking, security]
+
+- rule: Detect whoami Command Execution
+  desc: Logs whenever the 'whoami' command is used
+  condition: spawned_process and proc.name = "whoami"
+  output: "User executed whoami (user=%user.name command=%proc.cmdline)"
+  priority: INFO
+  tags: [host, command_monitoring]
+
+- rule: Detect Python Execution
+  desc: Alerts on usage of Python or Python3 binaries
+  condition: spawned_process and proc.name in ("python", "python3")
+  output: "User executed Python (user=%user.name command=%proc.cmdline)"
+  priority: WARNING
+  tags: [host, scripting, security]
+
+- rule: Detect Sudo Usage
+  desc: Alerts when 'sudo' is used
+  condition: spawned_process and proc.name = "sudo"
+  output: "User executed sudo (user=%user.name command=%proc.cmdline)"
+  priority: WARNING
+  tags: [host, privilege_escalation, security]
+
+- rule: Detect su Command Execution
+  desc: Alerts when 'su' is used
+  condition: spawned_process and proc.name = "su"
+  output: "User attempted to switch user using su (user=%user.name command=%proc.cmdline)"
+  priority: WARNING
+  tags: [host, privilege_escalation, security]
+
+- rule: Detect New User Creation
+  desc: Alerts when a new user is created
+  condition: evt.type = execve and proc.name in ("useradd", "adduser")
+  output: "New user created (user=%user.name command=%proc.cmdline)"
+  priority: CRITICAL
+  tags: [host, user_management, security]
+
+- rule: Detect New Shell Spawn
+  desc: Alerts when a new shell is spawned
+  condition: spawned_process and proc.name in ("sh", "bash", "zsh")
+  output: "New shell spawned (user=%user.name command=%proc.cmdline pid=%proc.pid)"
+  priority: WARNING
+  tags: [host, shell_activity, security]
+
+- rule: Detect iptables Manipulation
+  desc: Alerts when iptables rules are reset or changed
+  condition: spawned_process and proc.name in ("iptables", "iptables-restore", "iptables-save") and proc.args contains "-F"
+  output: "iptables rules flushed (user=%user.name command=%proc.cmdline)"
+  priority: CRITICAL
+  tags: [host, firewall, security]
