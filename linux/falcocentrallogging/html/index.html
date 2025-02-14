@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Falco Logging</title>
+    <link rel="stylesheet" href="css/jquery.dataTables.min.css">
+    <script src="scripts/jquery-3.6.0.min.js"></script>
+    <script src="scripts/jquery.dataTables.min.js"></script>
+    <style>
+        /* Dark mode styles */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background-color: #121212;
+            color: #E0E0E0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header styling */
+        h2 {
+            text-align: center;
+            margin: 20px 0;
+            color: #FFFFFF;
+        }
+
+        /* Table container */
+        .table-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+        }
+
+        /* DataTables wrapper styling */
+        .dataTables_wrapper {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background-color: #1E1E1E;
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        /* Set table styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #444;
+        }
+
+        th {
+            background-color: #333;
+            color: #FFF;
+        }
+
+        tr:nth-child(even) {
+            background-color: #2A2A2A;
+        }
+
+        tr:hover {
+            background-color: #444;
+            cursor: pointer;
+        }
+
+        /* Customize DataTable pagination */
+        .dataTables_paginate {
+            color: #E0E0E0;
+        }
+        .dataTables_paginate a {
+            color: #E0E0E0;
+            margin: 0 5px;
+            text-decoration: none;
+        }
+        .dataTables_paginate a:hover {
+            color: #FF9800;
+        }
+    </style>
+</head>
+<body>
+    <h2>Falco EDR Logging</h2>
+
+    <div class="table-container">
+        <table id="massiveTable" class="display">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>IP</th>
+                    <th>Hostname</th>
+                    <th>Priority</th>
+                    <th>Rule</th>
+                    <th>Source</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+
+    <script>
+    $(document).ready(function () {
+        var table = $('#massiveTable').DataTable({
+            "processing": true,
+            "serverSide": true,
+            "scrollY": "70vh",
+            "scrollCollapse": true,
+            "paging": true,
+            "order": [[0, "asc"]], // Default sorting by the first column (ID)
+            "ajax": function(data, callback, settings) {
+                var limit = settings._iDisplayLength;
+                var offset = settings._iDisplayStart;
+                var searchValue = data.search.value;
+                var orderColumnIndex = data.order[0].column;  // Get column index for sorting
+                var orderDir = data.order[0].dir;  // Get sorting direction ("asc" or "desc")
+                var orderColumn = data.columns[orderColumnIndex].data; // Get the column name
+
+                $.ajax({
+                    url: "/gettable",
+                    type: "GET",
+                    data: {
+                        limit: limit,
+                        offset: offset,
+                        search: searchValue,
+                        orderColumn: orderColumn,  // Send column name
+                        orderDir: orderDir  // Send sort direction
+                    },
+                    success: function(response) {
+                        callback({
+                            draw: settings.iDraw,
+                            recordsTotal: response.totalRows,
+                            recordsFiltered: response.filteredRows,
+                            data: response.data
+                        });
+                    }
+                });
+            },
+            "columns": [
+                { "data": "id" },
+                { "data": "ip_address" },
+                { "data": "hostname" },
+                { "data": "priority" },
+                { "data": "rule" },
+                { "data": "source" },
+                { "data": "time" }
+            ]
+        });
+
+        // Click event to navigate to a new page with row ID
+        $('#massiveTable tbody').on('click', 'tr', function () {
+            var rowData = table.row(this).data();
+            var entryId = rowData.id;
+            window.location.href = "event.html?id=" + entryId;
+        });
+    });
+    </script>
+</body>
+</html>
