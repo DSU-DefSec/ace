@@ -1,0 +1,19 @@
+- name: palo_reservice | Add service rules for {{ service.key }}
+  paloaltonetworks.panos.panos_security_rule:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    rule_name: inbound-{{ service.key }}{{ item.key }}
+    source_zone: ["{{ alias.wan | default('wan') }}"]
+    source_ip: [any]
+    destination_zone: ["{{ lookup('template', 'dst_zone.j2') }}"]
+    destination_ip: ["{{ item.value.ip |  default(lan_net ~ item.key) }}"]
+    application: "{{ item.value.svc | default(palo.svc[service.key]) }}"
+    action: allow
+    location: before
+    existing_rule: inbound-all
+    group_profile: security
+    log_start: true
+    log_end: true
+    log_setting: Loggie McLog Face
+    tag_name: [Service]
+  loop: "{{ service.value | dict2items }}"

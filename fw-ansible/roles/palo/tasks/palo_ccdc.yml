@@ -46,28 +46,10 @@
     destination_zone: ["{{ alias.wan | default('wan') }}"]
     destination_ip: "{{ white_ccs }}"
     application: [any]
+    service: [any]
     action: allow
     existing_rule: "{{ 'outbound-phone' if white_phone is defined else omit }}"
     location: "{{ 'after' if outbound_phone is defined else 'top' }}"
-    log_start: true
-    log_end: true
-    log_setting: Loggie McLog Face
-    tag_name: [CCDC]
-
-- name: palo_ccdc | Outbound proxy
-  paloaltonetworks.panos.panos_security_rule:
-    provider: "{{ provider }}"
-    device_group: "{{ device_group if device_group is defined else omit }}"
-    rule_name: outbound-proxy
-    source_zone: [any]
-    source_ip: [any]
-    destination_zone: ["{{ alias.wan | default('wan') }}"]
-    destination_ip: ["{{ white_proxy }}"]
-    service: [service-proxy]
-    action: allow
-    location: after
-    existing_rule: outbound-ccs
-    group_profile: security
     log_start: true
     log_end: true
     log_setting: Loggie McLog Face
@@ -77,7 +59,7 @@
   paloaltonetworks.panos.panos_security_rule:
     provider: "{{ provider }}"
     device_group: "{{ device_group if device_group is defined else omit }}"
-    rule_name: outbound-white-patch
+    rule_name: outbound-patch
     source_zone: [any]
     source_ip: [any]
     destination_zone: ["{{ alias.wan | default('wan') }}"]
@@ -85,7 +67,7 @@
     application: [any]
     action: allow
     location: after
-    existing_rule: outbound-proxy
+    existing_rule: outbound-ccs
     group_profile: security
     log_start: true
     log_end: true
@@ -96,7 +78,7 @@
   paloaltonetworks.panos.panos_security_rule:
     provider: "{{ provider }}"
     device_group: "{{ device_group if device_group is defined else omit }}"
-    rule_name: outbound-white-ntp
+    rule_name: outbound-ntp
     source_zone: [any]
     source_ip: [any]
     destination_zone: ["{{ alias.wan | default('wan') }}"]
@@ -104,7 +86,7 @@
     application: [ntp]
     action: allow
     location: after
-    existing_rule: outbound-white-patch
+    existing_rule: outbound-ccs
     group_profile: security
     log_start: true
     log_end: true
@@ -123,7 +105,7 @@
     application: [any]
     action: allow
     location: after
-    existing_rule: outbound-white-ntp
+    existing_rule: outbound-ntp
     group_profile: security
     log_start: true
     log_end: true
@@ -169,7 +151,6 @@
     tag_name: [CCDC]
 
 - name: palo_ccdc | Inbound rdp
-  when: services.palo.win is defined
   paloaltonetworks.panos.panos_security_rule:
     provider: "{{ provider }}"
     device_group: "{{ device_group if device_group is defined else omit }}"
@@ -177,12 +158,13 @@
     source_zone: ["{{ alias.wan | default('wan') }}"]
     source_ip: [any]
     destination_zone: ["{{ alias.lan | default('lan') }}"]
-    destination_ip: [windows]
+    destination_ip: ["{{ local_dns }}"]
     application: [ms-rdp]
     action: allow
     location: after
     existing_rule: inbound-icmp
     group_profile: security
+    disabled: true
     log_start: true
     log_end: true
     log_setting: Loggie McLog Face
@@ -192,7 +174,7 @@
   paloaltonetworks.panos.panos_security_rule:
     provider: "{{ provider }}"
     device_group: "{{ device_group if device_group is defined else omit }}"
-    rule_name: outbound-white
+    rule_name: outbound-whiteteam
     source_zone: [any]
     source_ip: [any]
     destination_zone: ["{{ alias.wan | default('wan') }}"]
@@ -202,6 +184,25 @@
     location: after
     existing_rule: inbound-icmp
     group_profile: security
+    log_start: true
+    log_end: true
+    disabled: true
+    log_setting: Loggie McLog Face
+    tag_name: [CCDC]
+
+- name: palo_ccdc | Outbound proxy
+  paloaltonetworks.panos.panos_security_rule:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    rule_name: outbound-proxy
+    source_zone: [any]
+    source_ip: [any]
+    destination_zone: ["{{ alias.wan | default('wan') }}"]
+    destination_ip: ["{{ white_proxy }}"]
+    service: [service-proxy]
+    action: allow
+    location: bottom
+    group_profile: proxy
     log_start: true
     log_end: true
     log_setting: Loggie McLog Face

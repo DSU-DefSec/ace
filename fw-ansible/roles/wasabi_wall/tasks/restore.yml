@@ -3,8 +3,8 @@
   community.general.iptables_state:
     state: restored
     path: /etc/sysconfig/iptables.rules
-- name: restore | restore file
-  deligate_to: localhost
+
+- name: restore | Restore file
   ansible.builtin.fetch:
     src: /etc/sysconfig/iptables.rules
     dest: /home/ansible/data/backup/firewall/

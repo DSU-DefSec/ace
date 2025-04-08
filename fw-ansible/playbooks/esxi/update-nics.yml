@@ -1,0 +1,31 @@
+---
+- name: ESXI update NICs
+  hosts: esxi
+  ignore_errors: true
+  gather_facts: false
+  roles:
+    - dsu.ccdc.esxi
+  # vars:
+  # esxi_user: root
+  # strategy: free
+  connection: local
+
+  tasks:
+    - name: Import vars
+      ansible.builtin.include_vars:
+        dir: /home/ansible/vars/
+
+    - name: Change nic for VMs
+      when: item.mac_address[1] is not defined
+      community.vmware.vmware_guest:
+        hostname: "{{ inventory_hostname }}"
+        username: "{{ esxi_user }}"
+        password: "{{ esxi_password }}"
+        validate_certs: false
+        name: "{{ item.value.guest_name }}"
+        # name: test
+        networks:
+          - name: "{{ item.value.network | default('lan') }}"
+      register: new_nic
+      delegate_to: localhost
+      loop: "{{ esxi_vms | dict2items }}"

@@ -17,6 +17,14 @@
     protocol: tcp
     destination_port: "{{  proxy_port | default('8080') }}"
 
+- name: service_group | Add Splunk
+  paloaltonetworks.panos.panos_service_object:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    name: service-splunk
+    protocol: tcp
+    destination_port: "8089"
+
 # Service groups
 # Add web service group
 - name: service_group | Create Web service object
@@ -32,4 +40,4 @@
     provider: "{{ provider }}"
     device_group: "{{ device_group if device_group is defined else omit }}"
     name: windc
-    value: [ldap, ms-ds-smb, active-directory]
+    value: [active-directory, ldap, ms-ds-smb, kerberos]

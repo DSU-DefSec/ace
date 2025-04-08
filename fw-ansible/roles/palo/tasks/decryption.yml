@@ -1,0 +1,24 @@
+- name: decryption | Generate CA
+  paloaltonetworks.panos.panos_op:
+    provider: "{{ provider }}"
+    cmd: "request certificate generate ca yes certificate-name palo-ca name palo algorithm RSA rsa-nbits 4096"
+
+- name: decryption | Generate Decryption certificate
+  paloaltonetworks.panos.panos_op:
+    provider: "{{ provider }}"
+    cmd: |
+      request certificate generate signed-by palo-ca ca yes hostname palo.ccdc ip {{ inventory_hostname }}
+      certificate-name palo-decrypt algorithm RSA rsa-nbits 4096 name palo.ccdc
+
+- name: decryption | Create Decryption Rule
+  paloaltonetworks.panos.panos_decryption_rule:
+    provider: "{{ provider }}"
+    rule_name: "Decryption Rule"
+    rule_type: "SSL Forward Proxy"
+    action: "decrypt"
+    source_zone: any
+    destination_zone: wan
+    source_address: "any"
+    destination_address: "any"
+    application: "web-browsing"
+    service: "application-default"

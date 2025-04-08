@@ -1,0 +1,47 @@
+---
+- name: Prep ESXI for Firewall implementation
+  hosts: esxi
+  ignore_errors: true
+  gather_facts: false
+  connection: local
+  roles:
+    - dsu.ccdc.esxi
+  vars:
+    esxi_user: root
+    # strategy: free
+
+  tasks:
+    - name: Import vars
+      ansible.builtin.include_vars:
+        dir: /home/ansible/vars/
+
+    - name: Create vSwitch
+      when: esxi_vswitches is defined
+      ansible.builtin.include_role:
+        name: dsu.ccdc.esxi
+        tasks_from: vswitch
+      loop: "{{ esxi_vswitches }}"
+      loop_control:
+        loop_var: new_net
+
+    - name: Get all vm info
+      delegate_to: localhost
+      community.vmware.vmware_vm_info:
+        hostname: "{{ inventory_hostname }}"
+        username: "{{ esxi_user }}"
+        password: "{{ esxi_password }}"
+        validate_certs: false
+      register: vm_info
+
+    - name: Print VM info
+      ansible.builtin.debug:
+        var: vm_info
+
+    - name: Export VM info to file
+      delegate_to: localhost
+      ansible.builtin.template:
+        src: esxi.j2
+        dest: /home/ansible/vars/{{ inventory_hostname }}.yml
+        owner: ansible
+        group: ansible
+        mode: "0644"

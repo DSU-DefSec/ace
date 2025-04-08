@@ -1,4 +1,18 @@
 ---
+- name: rules | Meta stuff
+  block:
+    - name: rules | Get zones
+      paloaltonetworks.panos.panos_zone:
+        provider: "{{ provider }}"
+        state: gathered
+        gathered_filter: "*"
+      register: get_zones
+
+    - name: rules | Store gathered zones
+      ansible.builtin.set_fact:
+        local_zones: "{{ query('template', 'local_zones.j2') }}"
+        cacheable: true
+
 - name: rules | Add tags
   ansible.builtin.include_tasks: tags.yml
   when: palo_config_initial_rules

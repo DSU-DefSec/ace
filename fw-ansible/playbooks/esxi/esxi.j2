@@ -1,0 +1,13 @@
+{% set vm_dict = {} %}
+{% for vm in vm_info.virtual_machines %}
+    {% set _ = vm_dict.update({ vm.guest_name: {'network': vm.vm_network, 'ip_address': vm.ip_address} }) %}
+{% endfor %}
+
+esxi_vms:
+{% for guest_name, details in vm_dict.items() %}
+{% set name = details.ip_address if details.ip_address else guest_name %}
+  {{ name }}:
+    guest_name: {{ guest_name }}
+    network: "lan"
+    ip_address: {{ details.ip_address }}
+{% endfor %}

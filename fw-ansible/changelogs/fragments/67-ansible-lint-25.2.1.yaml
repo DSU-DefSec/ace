@@ -1,0 +1,2 @@
+security_fixes:
+- Update ansible-lint to 25.2.1 (https://github.com/dsiemienas03/ccdc-ansible/pull/67)

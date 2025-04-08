@@ -1,0 +1,29 @@
+# # # .github/workflows/ansible-lint.yml
+name: Ansible Lint
+on:
+  release:
+    types: [published, prereleased, released]
+  push:
+
+jobs:
+  build:
+    name: Ansible Lint # Naming the build is important to use it as a status check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.2.2
+
+      - name: Setup python
+        uses: actions/setup-python@v5.5.0
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - run: pip install -r requirements.txt
+
+      - name: Run ansible-lint
+        uses: ansible/ansible-lint@v25.2.1 # or version tag instead of 'main'
+        with:
+          args: "-c .config/ansible-lint.yml"
+          setup_python: false
+          working_directory: ""
+          requirements_file: requirements.yml

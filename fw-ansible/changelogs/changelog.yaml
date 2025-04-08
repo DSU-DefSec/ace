@@ -1,5 +1,49 @@
----
-ancestor:
+ancestor: null
 releases:
   1.0.0:
-    release_date: "2024-08-26"
+    release_date: '2024-08-26'
+  2.0.0:
+    changes:
+      minor_changes:
+      - Added additional documentation (https://github.com/dsiemienas03/ccdc-ansible/pull/50)
+      - Final changes before Nats 2025 (https://github.com/dsiemienas03/ccdc-ansible/pull/68)
+      - Post regionals 2025 updates (https://github.com/dsiemienas03/ccdc-ansible/pull/51)
+      - Rework zones (https://github.com/dsiemienas03/ccdc-ansible/issues/59)
+      release_summary: '| Release Date: 2025-04-06
+
+        | Release for CCDC Nationals 2025
+
+        '
+      security_fixes:
+      - Update ansible to 11.3.0 (https://github.com/dsiemienas03/ccdc-ansible/pull/40)
+      - Update ansible-lint to 25.2.1 (https://github.com/dsiemienas03/ccdc-ansible/pull/67)
+      - Update setup python to 5.5.0 (https://github.com/dsiemienas03/ccdc-ansible/pull/61)
+      - Update setuptools to 76.0.0 (https://github.com/dsiemienas03/ccdc-ansible/pull/46)
+      - Update setuptools to 78.1.0 (https://github.com/dsiemienas03/ccdc-ansible/pull/63)
+    fragments:
+    - 2.0.0_summary.yaml
+    - 40-ansible-11.3.0.yaml
+    - 44-post-regionals-2025.yaml
+    - 46-setuptools-76.0.0.yaml
+    - 49-documentation.yaml
+    - 59-rework-zones.yaml
+    - 61-setup-python-5.5.0.yaml
+    - 63-setuptools-78.1.0.yaml
+    - 67-ansible-lint-25.2.1.yaml
+    - 68-nats-2025.yaml
+    release_date: '2025-04-07'
+  2.1.0:
+    changes:
+      major_changes:
+      - Added support for decryption (https://github.com/dsiemienas03/ccdc-ansible/issues/65)
+      release_summary: '| Release Date: 2025-04-06
+
+        | Actually the release for CCDC Nationals 2025
+
+        | Includes support for SSL Decryption
+
+        '
+    fragments:
+    - 2.1.0_summary.yaml
+    - 65-Decryption.yaml
+    release_date: '2025-04-07'

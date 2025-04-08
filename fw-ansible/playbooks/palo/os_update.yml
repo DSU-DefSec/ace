@@ -1,0 +1,46 @@
+- name: Palo os update
+  hosts: palo
+  connection: local
+  ignore_errors: false
+  roles:
+    - dsu.ccdc.palo
+  vars:
+    provider:
+      ip_address: "{{ inventory_hostname }}"
+      api_key: "{{ api_key }}"
+    palo_update_os: true
+
+  tasks:
+
+    - name: Update PANOS
+      ansible.builtin.import_role:
+        name: dsu.ccdc.palo
+        tasks_from: os_update
+      when: palo_update_os
+
+  handlers:
+    - name: Wait for System Information
+      paloaltonetworks.panos.panos_op:
+        provider: "{{ provider }}"
+        device_group: "{{ device_group if device_group is defined else omit }}"
+        cmd: show system info
+      register: system_info
+      until: system_info is not failed
+      retries: 200
+      delay: 2
+      listen: reboot
+
+    - name: Update System Info
+      ansible.builtin.set_fact:
+        system_info_json: "{{ system_info.stdout | from_json }}"
+      listen: reboot
+
+    - name: Update Software Version
+      ansible.builtin.set_fact:
+        sw_version: "{{ system_info_json.response.result.system['sw-version'] }}"
+      listen: reboot
+
+    - name: Display Current Software version
+      ansible.builtin.debug:
+        msg: "Current software version is: {{ sw_version }}"
+      listen: reboot

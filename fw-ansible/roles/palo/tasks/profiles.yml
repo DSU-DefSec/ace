@@ -16,4 +16,28 @@
   paloaltonetworks.panos.panos_pg:
     provider: "{{ provider }}"
     device_group: "{{ device_group if device_group is defined else omit }}"
+    pg_name: proxy
+    virus: default
+    file_blocking: strict file blocking
+    spyware: strict
+    vulnerability: strict
+    url_filtering: default
+    wildfire: default
+
+- name: profiles | Set service profile group
+  paloaltonetworks.panos.panos_pg:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    pg_name: service
+    virus: default
+    file_blocking: strict file blocking
+    spyware: default
+    vulnerability: strict
+    url_filtering: default
+    wildfire: default
+
+- name: profiles | Setup security profile group
+  paloaltonetworks.panos.panos_pg:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
     pg_name: alert

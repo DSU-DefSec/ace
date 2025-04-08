@@ -1,0 +1,2 @@
+security_fixes:
+  - Update setuptools to 76.0.0 (https://github.com/dsiemienas03/ccdc-ansible/pull/46)

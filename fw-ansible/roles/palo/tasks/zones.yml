@@ -3,39 +3,40 @@
 - name: zones | Create WAN zone
   paloaltonetworks.panos.panos_zone:
     provider: "{{ provider }}"
-    device_group: "{{ device_group if device_group is defined else omit }}"
     mode: layer2
     zone: wan
+    log_setting: "Loggie McLog Face"
   when: palo_config_initial_zones
 
 - name: zones | Create LAN zone
   paloaltonetworks.panos.panos_zone:
     provider: "{{ provider }}"
-    device_group: "{{ device_group if device_group is defined else omit }}"
     mode: layer2
     zone: lan
+    log_setting: "Loggie McLog Face"
   when: palo_config_initial_zones
 
 - name: zones | Create MGT zone
   paloaltonetworks.panos.panos_zone:
     provider: "{{ provider }}"
-    device_group: "{{ device_group if device_group is defined else omit }}"
     mode: layer2
     zone: mgt
+    log_setting: "Loggie McLog Face"
   when: palo_config_initial_zones
 
-- name: zones | Set initial zones complete
-  ansible.builtin.set_fact:
-    palo_config_initial_zones: false
-    cacheable: true
-  when: palo_config_initial_zones
 
 # Custom zones for certian applications
 - name: zones | Config additional zones
   when: palo_zones is defined
   paloaltonetworks.panos.panos_zone:
     provider: "{{ provider }}"
-    device_group: "{{ device_group if device_group is defined else omit }}"
     mode: layer2
     zone: "{{ item.value.zone }}"
-  loop: "{{ palo_zone.zones | dict2items }}"
+    log_setting: "Loggie McLog Face"
+  loop: "{{ palo_zones | dict2items }}"
+
+- name: zones | Set initial zones complete
+  ansible.builtin.set_fact:
+    palo_config_initial_zones: false
+    cacheable: true
+  when: palo_config_initial_zones

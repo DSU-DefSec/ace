@@ -1,0 +1,11 @@
+{# {{ esxi_vms[lan_net ~ item.key].network if esxi_vms[lan_net ~ item.key].network is none else item.value.zone | default('lan') }} #}
+{% if item.value.ip is defined and esxi_vms[item.value.ip] is defined %}
+{% set dst_zone = esxi_vms[item.value.ip].network %}
+{% elif esxi_vms[lan_net ~ item.key].network is defined %}
+{% set dst_zone = esxi_vms[lan_net ~ item.key].network %}
+{% elif item.value.zone is defined %}
+{% set dst_zone = item.value.zone %}
+{% else %}
+{% set dst_zone = 'lan' %}
+{% endif%}
+{{ dst_zone }}

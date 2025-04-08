@@ -1,0 +1,2 @@
+major_changes:
+  - Added support for decryption (https://github.com/dsiemienas03/ccdc-ansible/issues/65)

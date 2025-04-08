@@ -29,38 +29,39 @@
     if_name: ethernet1/2
     gathered_filter: if_name
 
-- name: interfaces | Add ethernet1/6 to zone mgt
+- name: interfaces | Add ethernet1/9 to zone mgt
   when: palo_config_initial_interface and palo_physical
   paloaltonetworks.panos.panos_interface:
     provider: "{{ provider }}"
     mode: layer2
     vlan_name: default
     zone_name: mgt
-    if_name: ethernet1/6
+    if_name: ethernet1/9
     gathered_filter: if_name
 
-- name: interfaces | Add ethernet1/7 to zone mgt
+- name: interfaces | Add ethernet1/10 to zone mgt
   when: palo_config_initial_interface and palo_physical
   paloaltonetworks.panos.panos_interface:
     provider: "{{ provider }}"
     mode: layer2
     vlan_name: default
     zone_name: mgt
-    if_name: ethernet1/7
+    if_name: ethernet1/10
     gathered_filter: if_name
+
+- name: interfaces | Config additional interfaces
+  when: item.key != "ethernet1/1" and item.key != "ethernet1/2"
+  paloaltonetworks.panos.panos_interface:
+    provider: "{{ provider }}"
+    mode: layer2
+    vlan_name: default
+    zone_name: "{{ item.value.zone | default(override_nic) }}"
+    if_name: "{{ item.key }}"
+    gathered_filter: if_name
+  loop: "{{ palo_zones | dict2items }}"
 
 - name: interfaces | Ansible.builtin.set_fact
   when: palo_config_initial_interface
   ansible.builtin.set_fact:
     palo_config_initial_interface: false
     cacheable: true
-
-- name: interfaces | Config additional interfaces
-  paloaltonetworks.panos.panos_interface:
-    provider: "{{ provider }}"
-    mode: layer2
-    vlan_name: default
-    zone_name: "{{ item.value.zone }}"
-    if_name: "{{ item.key }}"
-    gathered_filter: if_name
-  loop: "{{ palo_zone.zones | dict2items }}"

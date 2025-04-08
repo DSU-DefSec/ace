@@ -9,6 +9,7 @@ palo_config_logging: true
 palo_config_initial_rules: true
 palo_physical: false
 # palo_panos_version: 11.2.4
+palo_config_decryption: true
 palo_code_revisions:
   "8.0.0": 8.0.20
   "8.1.0": 8.1.24

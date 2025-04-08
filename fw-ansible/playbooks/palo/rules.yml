@@ -1,0 +1,37 @@
+---
+- name: Palo initial config
+  hosts: palo
+  connection: local
+  ignore_errors: true
+  roles:
+    - dsu.ccdc.palo
+  vars:
+    provider:
+      ip_address: "{{ inventory_hostname }}"
+      api_key: "{{ api_key }}"
+
+  tasks:
+    - name: Include role
+      ansible.builtin.include_role:
+        name: dsu.ccdc.palo
+        vars_from: main.yml
+
+    - name: Load vars
+      ansible.builtin.include_vars:
+        dir: /home/ansible/vars/
+
+    # Firewall rules
+    - name: Add CCDC local firewall rules
+      ansible.builtin.import_role:
+        name: dsu.ccdc.palo
+        tasks_from: palo_local
+
+    - name: Add service rules
+      ansible.builtin.import_role:
+        name: dsu.ccdc.palo
+        tasks_from: palo_svc
+
+    - name: Commit rule changes
+      ansible.builtin.import_role:
+        name: dsu.ccdc.palo
+        tasks_from: commit

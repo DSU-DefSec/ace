@@ -22,7 +22,7 @@
     name: "{{ item.guest_name }}"
     # name: test
     networks:
-      - name: "{{ new_net | default('protected') }}"
+      - name: "{{ new_net | default('lan') }}"
   register: new_nic
   delegate_to: localhost
   loop: "{{ vm_info.virtual_machines | list }}"

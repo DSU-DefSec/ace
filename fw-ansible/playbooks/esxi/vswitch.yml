@@ -1,0 +1,11 @@
+---
+- name: ESXI full configuration
+  hosts: esxi
+  # ignore_errors: true
+  gather_facts: false
+  roles:
+    - dsu.ccdc.esxi
+  # vars:
+  # esxi_user: root
+  # strategy: free
+  connection: local

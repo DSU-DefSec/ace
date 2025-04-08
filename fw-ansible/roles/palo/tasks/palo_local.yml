@@ -7,8 +7,11 @@
     rule_name: inbound-esx{{ item.key }}
     source_zone: ["{{ alias.wan | default('wan') }}"]
     source_ip: [any]
-    destination_zone: ["{{ item.value if item.value is not none else alias.lan | default('lan') }}"]
-    destination_ip: ["{{ item.value.ip |  default(lan_net ~ item.key) }}"]
+    destination_zone:
+      [
+        "{{ item.value.zone if item.value.zone is defined else alias.lan | default('lan') }}",
+      ]
+    destination_ip: ["{{ item.value.ip | default(lan_net ~ item.key) }}"]
     application: [any]
     action: deny
     location: before
@@ -27,8 +30,11 @@
     rule_name: inbound-dc{{ item.key }}
     source_zone: ["{{ alias.wan | default('wan') }}"]
     source_ip: [any]
-    destination_zone: ["{{ item.value if item.value is not none else alias.lan | default('lan') }}"]
-    destination_ip: ["{{ item.value.ip |  default(lan_net ~ item.key) }}"]
+    destination_zone:
+      [
+        "{{ item.value.zone if item.value.zone is defined else alias.lan | default('lan') }}",
+      ]
+    destination_ip: ["{{ item.value.ip | default(lan_net ~ item.key) }}"]
     application: [windc]
     action: deny
     location: before
@@ -47,9 +53,12 @@
     rule_name: lan-windc{{ item.key }}
     source_zone: ["{{ alias.lan | default('lan') }}"]
     source_ip: [any]
-    destination_zone: ["{{ item.value if item.value is not none else alias.lan | default('lan') }}"]
-    destination_ip: ["{{ item.value.ip |  default(lan_net ~ item.key) }}"]
-    application: [windc]
+    destination_zone:
+      [
+        "{{ item.value.zone if item.value.zone is defined else alias.lan | default('lan') }}",
+      ]
+    destination_ip: ["{{ item.value.ip | default(lan_net ~ item.key) }}"]
+    application: [windc, dns]
     action: allow
     location: before
     existing_rule: tmp-block
@@ -68,8 +77,11 @@
     rule_name: lan-esx{{ item.key }}
     source_zone: ["{{ alias.lan | default('lan') }}"]
     source_ip: [any]
-    destination_zone: ["{{ item.value if item.value is not none else alias.lan | default('lan') }}"]
-    destination_ip: ["{{ item.value.ip |  default(lan_net ~ item.key) }}"]
+    destination_zone:
+      [
+        "{{ item.value.zone if item.value.zone is defined else alias.lan | default('lan') }}",
+      ]
+    destination_ip: ["{{ item.value.ip | default(lan_net ~ item.key) }}"]
     application: [vmware, ssl]
     action: allow
     location: before
@@ -90,7 +102,7 @@
     source_zone: ["{{ alias.lan | default('lan') }}"]
     source_ip: [any]
     destination_zone: ["{{ alias.lan | default('wan') }}"]
-    destination_ip: "{{ remote_net | list }}"
+    destination_ip: ["{{ remote_net }}"]
     application: [web-browsing, ssl, ssh, ms-rdp]
     action: allow
     location: before
@@ -101,14 +113,14 @@
     log_setting: Loggie McLog Face
     tag_name: [Service, local]
 
-- name: palo_local | Remote logging network to lan
+- name: palo_local | Remote network logging to lan (wazuh)
   when: wazuh is defined and remote_net is defined
   paloaltonetworks.panos.panos_security_rule:
     provider: "{{ provider }}"
     device_group: "{{ device_group if device_group is defined else omit }}"
-    rule_name: inbound-remote
+    rule_name: remote-wazuh
     source_zone: ["{{ alias.wan | default('wan') }}"]
-    source_ip: "{{ remote_net | list }}"
+    source_ip: "{{ remote_net }}"
     destination_zone: ["{{ wazuh_zone | default('lan') }}"]
     destination_ip: ["{{ wazuh }}"]
     application: [wazuh-agent, syslog]
@@ -116,6 +128,136 @@
     location: before
     existing_rule: tmp-block
     group_profile: security
+    log_start: true
+    log_end: true
+    log_setting: Loggie McLog Face
+    tag_name: [Service, local]
+
+- name: palo_local | Remote network to lan (splunk)
+  when: splunk is defined and remote_net is defined
+  paloaltonetworks.panos.panos_security_rule:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    rule_name: "remote-splunk"
+    source_zone: "{{ alias.wan | default('wan') }}"
+    source_ip: "{{ remote_net }}"
+    destination_zone: ["{{ splunk_zone | default('lan') }}"]
+    destination_ip: ["{{ splunk }}"]
+    application: ["splunk", "web-browsing"]
+    service: "service-splunk"
+    action: allow
+    location: before
+    existing_rule: tmp-block
+    group_profile: security
+    log_start: true
+    log_end: true
+    log_setting: Loggie McLog Face
+    tag_name: [Service, local]
+
+- name: palo_local | Allow local logging (wazuh)
+  when: wazuh is defined
+  paloaltonetworks.panos.panos_security_rule:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    rule_name: local-wazuh
+    source_zone: "lan"
+    source_ip: ["{{ lan_mask }}"]
+    destination_zone: ["{{ wazuh_zone | default('lan') }}"]
+    destination_ip: ["{{ wazuh }}"]
+    application: [wazuh-agent, syslog]
+    action: allow
+    location: before
+    existing_rule: tmp-block
+    group_profile: security
+    log_start: true
+    log_end: true
+    log_setting: Loggie McLog Face
+    tag_name: [Service, local]
+
+- name: palo_local | Allow local logging (splunk)
+  paloaltonetworks.panos.panos_security_rule:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    rule_name: lan-splunk
+    source_zone: "lan"
+    source_ip: ["{{ lan_mask }}"]
+    destination_zone: ["{{ splunk_zone | default('lan') }}"]
+    destination_ip: ["{{ splunk }}"]
+    application: ["splunk", "web-browsing"]
+    service: ["service-splunk"]
+    action: allow
+    location: before
+    existing_rule: tmp-block
+    group_profile: security
+    log_start: true
+    log_end: true
+    log_setting: Loggie McLog Face
+    tag_name: [Service, local]
+
+- name: palo_local | Allow local DNS
+  paloaltonetworks.panos.panos_security_rule:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    rule_name: local-dns
+    source_zone: "lan"
+    source_ip: ["{{ lan_mask }}"]
+    destination_zone:
+      [
+        "{{ item.value.zone if item.value.zone is defined else alias.lan | default('lan') }}",
+      ]
+    destination_ip: ["{{ item.value.ip | default(lan_net ~ item.key) }}"]
+    application: [dns]
+    action: allow
+    location: before
+    existing_rule: tmp-block
+    group_profile: security
+    log_start: true
+    log_end: true
+    log_setting: Loggie McLog Face
+    tag_name: [Service, local]
+  loop: "{{ services.palo.esx | dict2items }}"
+
+- name: palo_local | ESXI to Local
+  when: services.palo.esx is defined
+  paloaltonetworks.panos.panos_security_rule:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    rule_name: esx-lan{{ item.key }}
+    source_zone:
+      [
+        "{{ item.value.zone if item.value.zone is defined else alias.lan | default('lan') }}",
+      ]
+    source_ip: ["{{ item.value.ip | default(lan_net ~ item.key) }}"]
+    destination_zone: ["{{ alias.lan | default('lan') }}"]
+    destination_ip: [any]
+    application: [dns]
+    action: allow
+    location: before
+    existing_rule: tmp-block
+    group_profile: security
+    log_start: true
+    log_end: true
+    log_setting: Loggie McLog Face
+    tag_name: [Service, local]
+  loop: "{{ services.palo.esx | dict2items }}"
+
+
+- name: palo_local | Remote to DB
+  when: remote_net is defined
+  paloaltonetworks.panos.panos_security_rule:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    rule_name: remote-db
+    source_zone: ["{{ alias.wan | default('wan') }}"]
+    source_ip: "{{ remote_net }}"
+    destination_zone: ["{{ alias.lan | default('lan') }}"]
+    destination_ip: [1.1.1.1]
+    application: [any]
+    action: allow
+    location: before
+    existing_rule: inbound-db
+    group_profile: security
+    disabled: true
     log_start: true
     log_end: true
     log_setting: Loggie McLog Face

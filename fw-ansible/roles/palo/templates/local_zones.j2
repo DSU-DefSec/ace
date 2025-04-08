@@ -1,0 +1,2 @@
+[{% for zone in get_zones.gathered %}{%if zone.zone not in 'wan'%}{{ zone.zone }}{% endif %}{% if not loop.last and zone.zone not in 'wan' %}, {%
+endif %}{% endfor %}]
