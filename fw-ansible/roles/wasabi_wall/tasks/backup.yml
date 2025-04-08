@@ -1,0 +1,5 @@
+---
+- name: backup | Firewall restore
+  community.general.iptables_state:
+    state: restored
+    path: /etc/sysconfig/iptables.rules

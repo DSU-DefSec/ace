@@ -1,0 +1,66 @@
+---
+palo:
+  svc:
+    esx:
+      - vmware
+      - ssl
+    dc:
+      - windc
+    dns:
+      - dns
+    ftp:
+      - ftp
+    ntp:
+      - ntp
+    ssh:
+      - ssh
+    pop:
+      - pop3
+    smtp:
+      - smtp
+    imap:
+      - imap
+    http:
+      - web-browsing
+    email:
+      - imap
+      - pop3
+      - smtp
+    git:
+      - git
+    db:
+      - mysql
+      - postgres
+      - mongodb
+
+cisco:
+  svc:
+
+wrccdc_fw:
+  svc:
+    ssh:
+      port: 22
+    http:
+      port: 80
+    https:
+      port: 443
+    smb:
+      port: 445
+    ftp:
+      port: 21
+    pop:
+      port: 110
+    imap:
+      port: 143
+    smtp:
+      port: 25
+    dns:
+      port: 53
+      protocol: udp
+    ntp:
+      port: 123
+      protocol: udp
+
+fw_block:
+  - esx
+  - dc

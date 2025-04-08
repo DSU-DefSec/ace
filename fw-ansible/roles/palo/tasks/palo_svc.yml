@@ -1,0 +1,7 @@
+---
+- name: palo_svc | Add service rules
+  when: service.key not in fw_block
+  ansible.builtin.include_tasks: palo_service.yml
+  loop: "{{ services.palo | dict2items }}"
+  loop_control:
+    loop_var: service

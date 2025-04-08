@@ -1,0 +1,146 @@
+---
+- name: palo_critical | Inbound-block-db
+  paloaltonetworks.panos.panos_security_rule:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    rule_name: inbound-db
+    source_zone: ["{{ alias.wan | default('wan') }}"]
+    source_ip: [any]
+    destination_zone: [any]
+    destination_ip: [any]
+    application: [mysql, postgres, mongodb]
+    action: deny
+    group_profile: security
+    log_start: true
+    log_end: true
+    log_setting: Loggie McLog Face
+    tag_name: [Block]
+
+- name: palo_critical | Allow DC access to DNS
+  paloaltonetworks.panos.panos_security_rule:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    rule_name: outbound-dns
+    source_zone: ["{{ alias.lan | default('lan') }}"]
+    source_ip: ["{{ local_dns }}"]
+    destination_zone: ["{{ alias.wan | default('wan') }}"]
+    destination_ip: ["{{ white_dns }}"]
+    application: [dns]
+    action: allow
+    group_profile: security
+    location: after
+    existing_rule: inbound-db
+    log_start: true
+    log_end: true
+    log_setting: Loggie McLog Face
+    tag_name: [Critical]
+
+- name: palo_critical | Tmp block wan
+  paloaltonetworks.panos.panos_security_rule:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    rule_name: tmp-block
+    source_zone: ["{{ alias.wan | default('wan') }}"]
+    source_ip: [any]
+    destination_zone: [any]
+    destination_ip: [9.9.9.9]
+    application: [any]
+    action: deny
+    group_profile: security
+    location: after
+    existing_rule: outbound-dns
+    disabled: true
+    log_start: true
+    log_end: true
+    log_setting: Loggie McLog Face
+
+- name: palo_critical | Allow web outbound
+  paloaltonetworks.panos.panos_security_rule:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    rule_name: outbound-web
+    source_zone: ["{{ alias.lan | default('lan') }}"]
+    source_ip: [any]
+    destination_zone: ["{{ alias.wan | default('wan') }}"]
+    destination_ip: [any]
+    application: [web-browsing, ssl]
+    action: allow
+    group_profile: security
+    log_start: true
+    log_end: true
+    log_setting: Loggie McLog Face
+    tag_name: [Critical]
+
+- name: palo_critical | Services outbound
+  paloaltonetworks.panos.panos_security_rule:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    rule_name: outbound-services
+    source_zone: ["{{ alias.lan | default('lan') }}"]
+    source_ip: [any]
+    destination_zone: ["{{ alias.wan | default('wan') }}"]
+    destination_ip: [any]
+    application: [apt-get]
+    action: allow
+    group_profile: security
+    log_start: true
+    log_end: true
+    tag_name: [Critical]
+
+- name: palo_critical | Allow all traffic out
+  paloaltonetworks.panos.panos_security_rule:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    rule_name: outbound-all
+    source_zone: ["{{ alias.lan | default('lan') }}"]
+    source_ip: [any]
+    destination_zone: ["{{ alias.wan | default('wan') }}"]
+    destination_ip: [any]
+    application: [any]
+    action: allow
+    group_profile: security
+    log_start: true
+    log_end: true
+    disabled: true
+    location: bottom
+    log_setting: Loggie McLog Face
+    tag_name: [Critical, ALLOW ALL]
+
+- name: palo_critical | Management to all
+  paloaltonetworks.panos.panos_security_rule:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    rule_name: mgt-all
+    source_zone: [mgt]
+    source_ip: [any]
+    destination_zone: [any]
+    destination_ip: [any]
+    application: [any]
+    action: allow
+    location: after
+    existing_rule: inbound-db
+    log_start: true
+    log_end: true
+    log_setting: Loggie McLog Face
+    tag_name: [local]
+
+# Allow all traffic
+- name: palo_critical | Allow all traffic in
+  paloaltonetworks.panos.panos_security_rule:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    rule_name: inbound-all
+    source_zone: ["{{ alias.wan | default('wan') }}"]
+    source_ip: [any]
+    destination_zone: ["{{ alias.lan | default('lan') }}"]
+    destination_ip: [any]
+    application: [any]
+    action: allow
+    group_profile: security
+    log_start: true
+    log_end: true
+    log_setting: Loggie McLog Face
+    disabled: true
+    location: after
+    existing_rule: tmp-block
+    tag_name: [Critical, ALLOW ALL]

@@ -1,0 +1,22 @@
+[
+    {
+        "name": "Run Script",
+        "url": "/www/script.html"
+    },
+    {
+        "name": "Upload Files",
+        "url": "/www/files.html"
+    },
+    {
+        "name": "View Output",
+        "url": "/www/output.html"
+    },
+    {
+        "name": "Database",
+        "url": "/www/browser.html"
+    },
+    {
+        "name": "Passgen",
+        "url": "/www/passgen.html"
+    }
+]

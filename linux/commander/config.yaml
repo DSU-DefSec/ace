@@ -1,0 +1,35 @@
+env:
+  LANG: en-US
+scripts: scripts
+output: output
+WWW: www
+database: data.db
+
+endpoints:
+  ededdneddy:
+    host: 10.100.105.12
+    port: 22
+    user: root
+    passwords:
+    - "Meantime-Crucial-88@"
+    - "ousnoeswie:uetwitoi!3940!0963%"
+  lazlo:
+    host: 10.100.105.55
+    port: 22
+    user: root
+    passwords:
+    - "Include-Backed-37@"
+    - "oaspieji&iskeyfrey@7879:2425&"
+  dexter:
+    host: 10.100.105.42
+    port: 22
+    user: root
+    passwords:
+    - "itreadoo!eirauplee_9002&5597:"
+  toonami:
+    host: 10.100.105.100
+    port: 22
+    user: root
+    passwords:
+    - "Chest-Brain-79="
+    - "eustaufie?eaflauvay!6844^8227+"

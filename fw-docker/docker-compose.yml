@@ -1,0 +1,11 @@
+services:
+  ansible:
+    image: dsiemienas03/ccdc-docker
+    user: 1001:1001
+    volumes:
+      - data:/home/ansible/data
+      - ssh:/home/ansible/.ssh
+
+volumes:
+  data:
+  ssh:

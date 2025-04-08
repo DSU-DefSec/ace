@@ -1,0 +1,26 @@
+@import url("common.css");
+@import url("hamburger.css");
+
+section#backup {
+    flex: 1;
+}
+
+section#backup > div {
+    display: flex;
+    flex-direction: row;
+}
+
+section#backup > div > div.info {
+    flex: 1;
+}
+
+section#backup > div > div.controls {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1ex;
+}
+
+section#backup > div > div.controls button {
+    width: 100%;
+}

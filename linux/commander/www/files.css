@@ -1,0 +1,30 @@
+@import url("common.css");
+@import url("hamburger.css");
+
+section#files {
+    width: 100vw;
+}
+
+a {
+    color: inherit;
+}
+
+section#files > div {
+    display: flex;
+    flex-direction: row;
+}
+
+section#files > div > div.info {
+    flex: 1;
+}
+
+section#files > div > div.controls {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1ex;
+}
+
+section#files > div > div.controls button {
+    width: 100%;
+}

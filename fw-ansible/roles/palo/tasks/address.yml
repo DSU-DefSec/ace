@@ -1,0 +1,51 @@
+---
+- name: address | Add LAN Address
+  paloaltonetworks.panos.panos_address_object:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    name: lan
+    value: "{{ lan_mask }}"
+
+- name: address | Add Remote address
+  when: remote_mask is defined
+  paloaltonetworks.panos.panos_address_object:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    name: remote
+    value: "{{ remote_mask }}"
+
+- name: address | Add ESXI address
+  when: services.palo.esx[0] is defined
+  paloaltonetworks.panos.panos_address_object:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    name: esx{{  item.key }}
+    value: "{{ item.value.ip |  default(lan_net ~ item.key) }}"
+  loop: "{{ services.palo.esx | dict2items }}"
+
+- name: address | Add windows server address group
+  when: services.palo.dc[0] is defined
+  paloaltonetworks.panos.panos_address_group:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    name: windc
+    dynamic_value: dc
+  loop: "{{ services.palo.dc | dict2items }}"
+
+- name: address | Add esx address group
+  when: services.palo.esx[0] is defined
+  paloaltonetworks.panos.panos_address_group:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    name: esxi
+    dynamic_value: esx
+  loop: "{{ services.palo.esx | dict2items }}"
+
+- name: address | Add windows address group
+  when: services.palo.win[0] is defined
+  paloaltonetworks.panos.panos_address_group:
+    provider: "{{ provider }}"
+    device_group: "{{ device_group if device_group is defined else omit }}"
+    name: windows
+    dynamic_value: windows
+  loop: "{{ services.palo.win | dict2items }}"

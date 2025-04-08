@@ -1,0 +1,21 @@
+@import url("palette.css");
+@import url("mono-palette.css");
+
+:root {
+    --main-bg-color: var(--clr-mono-100);
+    --main-font-color: var(--clr-mono-900);
+
+    --header-bg-color: var(--clr-primary);
+    --header-font-color: var(--clr-mono-100);
+    
+    --action-bg-color: var(--clr-analogous-1);
+    --action-font-color: var(--clr-mono-50);
+
+    --selected-bg-color: var(--clr-analogous-2);
+    --selected-font-color: var(--clr-mono-50);
+    
+    --selectable-bg-color: var(--clr-analogous-1);
+    --selectable-font-color: var(--clr-mono-50);
+    
+    --border-color: var(--clr-mono-900);
+}

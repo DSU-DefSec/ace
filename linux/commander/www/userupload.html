@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Users to Database</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+        .form-container {
+            width: 80%;
+            max-width: 600px;
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+        .form-container textarea {
+            width: 100%;
+            height: 300px;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            resize: none;
+        }
+        .form-container button {
+            margin-top: 15px;
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .form-container button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <form id="userForm">
+            <textarea name="userData" placeholder="Enter usernames (one per line)"></textarea>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('userForm').addEventListener('submit', function(event) {
+            event.preventDefault();  // Prevent form from submitting and reloading the page
+
+            const submitBtn = document.getElementById('submitBtn');
+            const messageDiv = document.getElementById('message');
+
+            // Disable the button to prevent multiple submissions
+            //submitBtn.disabled = true;
+            //messageDiv.textContent = "Submitting...";
+
+            // Capture the user input (usernames entered one per line)
+            const userInput = document.querySelector('textarea[name="userData"]').value.trim().split('\n').map(user => `('${user.trim()}')`).join(',');
+
+            if (!userInput) {
+                alert('Please enter at least one username.');
+                submitBtn.disabled = false;
+                messageDiv.textContent = "";
+                return;
+            }
+
+            // SQL to create the GOOD_USERS table if it doesn't exist
+            const createTableQuery = `
+                CREATE TABLE IF NOT EXISTS GOOD_USERS (
+                    id SERIAL PRIMARY KEY,
+                    username VARCHAR(255) UNIQUE NOT NULL
+                );`;
+
+            // SQL query to insert the usernames into GOOD_USERS table
+            const insertQuery = `INSERT INTO GOOD_USERS (username) VALUES ${userInput};`;
+
+            // Function to send the SQL query to the /db endpoint
+            function sendQuery(sqlQuery) {
+                return fetch('http://localhost:8000/db?format=json', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/plain',
+                       // 'Authorization': 'Digest ' + btoa('admin:Password1!')
+                    },
+                    body: sqlQuery
+                });
+            }
+
+            // First create the table if it doesn't exist, then insert the data
+            sendQuery(createTableQuery)
+                .then(() => sendQuery(insertQuery))
+                .then(response => response.json())
+                .then(data => {
+                   // messageDiv.textContent = 'User(s) added successfully!';
+                    console.log(data);
+                })
+                .catch(error => {
+                   // messageDiv.textContent = 'Error adding user(s).';
+                    console.error('Error:', error);
+                })
+                .finally(() => {
+                    //submitBtn.disabled = false;  // Re-enable the submit button
+                });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+---
+# pfSense service rules
+- name: pfsense_service | Add service rules for {{ service.key }}
+  pfsensible.core.pfsense_rule:
+    name: "inbound-{{ service.key }}{{ item.key }}"
+    action: pass
+    interface: wan
+    ipprotocol: inet
+    protocol: tcp
+    source: any
+    destination: "{{ item.value.ip |  default(fw_net ~ item.key) }}"
+    destination_port: "{{ pfsense_svc[service.key] }}"
+    after: "anti-lockout"
+    state: present
+  loop: "{{ service.value | dict2items }}"

@@ -1,0 +1,33 @@
+---
+- name: pfsense_all_rules | Add CCDC firewall Rules
+  ansible.builtin.import_role:
+    name: dsu.ccdc.pfsense
+    tasks_from: pfsense_ccdc
+  when: pfsense_config_initial_rules
+
+- name: pfsense_all_rules |  Add local firewall Rules
+  ansible.builtin.import_role:
+    name: dsu.ccdc.pfsense
+    tasks_from: pfsense_local
+  when: pfsense_config_initial_rules
+
+- name: pfsense_all_rules | Add block firewall rules
+  ansible.builtin.import_role:
+    name: dsu.ccdc.pfsense
+    tasks_from: pfsense_critical
+  when: pfsense_config_initial_rules
+
+- name: pfsense_all_rules | Firewall rules
+  when: service.key not in fw_block
+  ansible.builtin.include_role:
+    name: dsu.ccdc.palo
+    tasks_from: pfsense_service
+  loop: "{{ services.pfsense | dict2items }}"
+  loop_control:
+    loop_var: service
+
+- name: pfsense_all_rules | Commit rule changes
+  ansible.builtin.import_role:
+    name: dsu.ccdc.pfsense
+    tasks_from: commit
+  when: pfsense_config_initial_rules

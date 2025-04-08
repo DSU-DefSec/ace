@@ -1,0 +1,12 @@
+---
+- name: wasabi_block | Iptables go BLOCK {{ service.key }}
+  ansible.builtin.iptables:
+    chain: "{{ item.value.chain | default('FORWARD') }}"
+    jump: DROP
+    source: "{{ item.value.src if item.value.src is defined else omit }}"
+    destination: "{{ item.value.dst |  default(lan_net ~ item.key) }}"
+    destination_port: "{{ item.value.port | default(wrccdc_fw.svc[service.key].port) }}"
+    protocol: "{{ item.value.protocol if item.value.protocol is defined else omit }}"
+    action: insert
+    rule_num: 1
+  loop: "{{ service.value | dict2items }}"

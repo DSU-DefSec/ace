@@ -1,0 +1,28 @@
+---
+- name: rules | Add tags
+  ansible.builtin.include_tasks: tags.yml
+  when: palo_config_initial_rules
+
+- name: rules | Add CCDC firewall Rules
+  ansible.builtin.include_tasks: palo_ccdc.yml
+  when: palo_config_initial_rules
+
+- name: rules | Add critical firewall rules
+  ansible.builtin.include_tasks: palo_critical.yml
+  when: palo_config_initial_rules
+
+- name: rules | Add local firewall Rules
+  ansible.builtin.include_tasks: palo_local.yml
+
+- name: rules | Add service rules
+  when: service.key not in fw_block
+  ansible.builtin.include_tasks: palo_service.yml
+  loop: "{{ services.palo | dict2items }}"
+  loop_control:
+    loop_var: service
+
+- name: rules | Finished initial rules
+  ansible.builtin.set_fact:
+    palo_config_initial_rules: false
+    cacheable: true
+  when: palo_config_initial_rules

@@ -1,0 +1,34 @@
+@import url("common.css");
+
+header > nav {
+    display: flex;
+    flex-direction: column;
+    height: 5ex;
+    width: 5ex;
+    background-color: inherit;
+}
+
+header > nav > div {
+    position: relative;
+    background-color: var(--action-bg-color);
+    color: var(--action-font-color);
+    width: 8em;
+}
+
+header > nav > div > a {
+    display: none;
+    padding: 1ex 1em;
+    text-align: center;
+    border-bottom: 1pt solid var(--border-color);
+    color: inherit;
+}
+
+header > nav:hover > div > a {
+    display: block;
+    border: 1pt solid var(--border-color);
+}
+
+header > nav > div > a:hover {
+    background-color: var(--selectable-bg-color);
+    color: var(--action-hover-font-color);
+}

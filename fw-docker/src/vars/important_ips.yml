@@ -1,0 +1,21 @@
+---
+# Whiteteam IPs
+white_net: 10.120.0.0/24
+# white_phone: 10.120.0.100
+white_patch: 10.120.0.9
+white_ntp: 10.120.0.10
+white_dns: 10.120.0.53
+white_ccs: 10.120.0.111
+white_proxy: 10.120.0.200
+white_inject: 10.120.0.110
+white_chat: 10.120.0.200
+
+# Critical IPs
+wazuh: 1.1.1.1
+wazuh_port: 1516
+# wazuh_zone: lan
+# wazuh_protocol: TCP
+
+# Remote IPS
+# remote_ip: 172.16.1.
+# remote_net: 172.16.1.0/24

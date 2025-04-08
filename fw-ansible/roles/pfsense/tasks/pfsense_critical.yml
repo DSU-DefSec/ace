@@ -1,0 +1,102 @@
+---
+# pfSense critical block rules
+- name: pfsense_critical | Allow all inbound
+  pfsensible.core.pfsense_rule:
+    name: inbound-all
+    action: pass
+    interface: WAN
+    direction: in
+    ipprotocol: inet
+    protocol: any
+    source: any
+    destination: NET:lan
+    before: bottom
+    log: true
+    state: present
+- name: pfsense_critical | Anti-lockout https
+  pfsensible.core.pfsense_rule:
+    name: anti-lockout-https
+    action: pass
+    interface: WAN
+    direction: in
+    ipprotocol: inet
+    protocol: tcp
+    source: any
+    after: top
+    destination: "{{ inventory_hostname }}"
+    destination_port: 443
+    log: true
+    state: present
+
+- name: pfsense_critical | Anti-lockout ssh
+  pfsensible.core.pfsense_rule:
+    name: anti-lockout-ssh
+    action: pass
+    interface: WAN
+    direction: in
+    ipprotocol: inet
+    protocol: tcp
+    source: any
+    after: anti-lockout-https
+    destination: "{{ inventory_hostname }}"
+    destination_port: 22
+    log: true
+    state: present
+- name: pfsense_critical | Add Internal web out rule
+  pfsensible.core.pfsense_rule:
+    name: "outbound-web"
+    action: pass
+    interface: WAN
+    direction: out
+    ipprotocol: inet
+    protocol: tcp
+    source: NET:lan
+    destination: any
+    destination_port: 80
+    before: inbound-all
+    log: true
+    state: present
+
+- name: pfsense_critical | Add Internal web out rule
+  pfsensible.core.pfsense_rule:
+    name: "outbound-web"
+    action: pass
+    interface: WAN
+    direction: out
+    ipprotocol: inet
+    protocol: tcp
+    source: NET:lan
+    destination: any
+    destination_port: 80
+    before: inbound-all
+    log: true
+    state: present
+
+- name: pfsense_critical | Add Internal DNS out rule
+  pfsensible.core.pfsense_rule:
+    name: outbound-dns
+    action: pass
+    interface: WAN
+    direction: out
+    ipprotocol: inet
+    protocol: udp
+    source: NET:lan
+    destination: any
+    destination_port: 53
+    before: inbound-all
+    log: true
+    state: present
+
+- name: pfsense_critical | Allow all outbound
+  pfsensible.core.pfsense_rule:
+    name: outbound-all
+    action: pass
+    interface: WAN
+    direction: out
+    ipprotocol: inet
+    protocol: any
+    source: NET:lan
+    destination: any
+    before: inbound-all
+    log: true
+    state: present

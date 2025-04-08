@@ -1,0 +1,11 @@
+{
+	"username": "admin",
+	"password": "Password1!",
+	"responses": {
+		"Detect whoami Command Execution": {
+			"commands": {
+				"1": "cat /etc/passwd"
+			}
+		}
+	}
+}

@@ -1,0 +1,28 @@
+---
+- name: install_panos_version | Download PAN-OS Major version {{ major_version }}
+  paloaltonetworks.panos.panos_software:
+    provider: "{{ provider }}"
+    version: "{{ major_version }}"
+    install: false
+    restart: false
+  when: current_major != major_version
+
+- name: install_panos_version | Install PAN-OS Minor version and Reboot {{ palo_code_revisions.get(major_version) }}
+  paloaltonetworks.panos.panos_software:
+    provider: "{{ provider }}"
+    version: "{{ palo_code_revisions.get(major_version) }}"
+    install: true
+    restart: true
+  register: install_result
+
+- name: install_panos_version | Notify Reboot Handler
+  ansible.builtin.command: echo "Wait for Device Reboot"
+  notify: reboot
+  changed_when: false
+
+- name: install_panos_version | Pause for Restart Checks
+  ansible.builtin.pause:
+    seconds: 30
+
+- name: install_panos_version | Wait for Online Handler
+  ansible.builtin.meta: flush_handlers
