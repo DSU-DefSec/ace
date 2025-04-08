@@ -1,0 +1,538 @@
+{
+  "visualizations": {
+    "viz_m75L5Rbg": {
+      "type": "splunk.singlevalue",
+      "title": "Allowed",
+      "dataSources": {
+        "primary": "ds_ACdPm3ZD"
+      },
+      "options": {
+        "majorValue": "> sparklineValues | lastPoint()",
+        "trendValue": "> sparklineValues | delta(-2)",
+        "sparklineValues": "> primary | seriesByName('count')",
+        "majorColor": "#53a051"
+      },
+      "eventHandlers": [
+        {
+          "type": "drilldown.setToken",
+          "options": {
+            "tokens": [
+              {
+                "token": "ACTION",
+                "value": "allowed"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "viz_APEfx8sH": {
+      "type": "splunk.singlevalue",
+      "dataSources": {
+        "primary": "ds_RMnMfGUz"
+      },
+      "title": "Denied",
+      "eventHandlers": [
+        {
+          "type": "drilldown.setToken",
+          "options": {
+            "tokens": [
+              {
+                "token": "ACTION",
+                "value": "blocked"
+              }
+            ]
+          }
+        }
+      ],
+      "options": {
+        "majorColor": "#dc4e41"
+      }
+    },
+    "viz_MH3kMKd3": {
+      "type": "splunk.table",
+      "dataSources": {
+        "primary": "ds_GLT5GRH6"
+      },
+      "title": "Events",
+      "containerOptions": {},
+      "showProgressBar": false,
+      "showLastUpdated": false,
+      "options": {
+        "columnFormat": {
+          "file_name": {
+            "data": "> table | seriesByName(\"file_name\") | formatByType(file_nameColumnFormatEditorConfig)",
+            "align": "auto",
+            "headerAlign": "auto",
+            "textOverflow": "ellipsis"
+          }
+        }
+      },
+      "context": {
+        "file_nameColumnFormatEditorConfig": {
+          "string": {
+            "unitPosition": "after"
+          }
+        }
+      }
+    },
+    "viz_7D3ECZ6b": {
+      "type": "splunk.table",
+      "options": {},
+      "dataSources": {
+        "primary": "ds_2MmQ4xt1"
+      }
+    },
+    "viz_0Up8gvFx": {
+      "type": "splunk.singlevalue",
+      "options": {},
+      "dataSources": {
+        "primary": "ds_7rTz5Eab"
+      }
+    },
+    "viz_FNvmoi8i": {
+      "type": "splunk.table",
+      "options": {},
+      "dataSources": {
+        "primary": "ds_wUrqaS2s"
+      }
+    },
+    "viz_HmfkSLUs": {
+      "type": "splunk.table",
+      "options": {},
+      "dataSources": {
+        "primary": "ds_e9R67HGZ"
+      }
+    },
+    "viz_wdCQtzA8": {
+      "type": "splunk.line",
+      "options": {
+        "y": "> primary | frameBySeriesNames('Inbound MB')",
+        "resultLimit": 500000
+      },
+      "dataSources": {
+        "primary": "ds_ZIHcs9bX"
+      }
+    },
+    "viz_yEus0iOo": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "# Inbound Traffic"
+      }
+    },
+    "viz_Ggk13QmY": {
+      "type": "splunk.markdown",
+      "options": {
+        "markdown": "# Outbound Traffic"
+      }
+    },
+    "viz_RnApLNLq": {
+      "type": "splunk.line",
+      "options": {
+        "y": "> primary | frameBySeriesNames('Outbound MB')"
+      },
+      "dataSources": {
+        "primary": "ds_QjMzrKx3"
+      }
+    }
+  },
+  "dataSources": {
+    "ds_5JnQ2Wvb": {
+      "type": "ds.search",
+      "options": {
+        "query": "| tstats `pan_summariesonly` \n    latest(_time) AS _time, \n    values(log.log_subtype) AS log_subtype, \n    values(log.severity) AS severity, \n    values(log.app) AS app, \n    values(log.user) AS user, \n    values(log.threat_name) AS threat_name, \n    values(log.file_name) AS file_name \n    values(log.bytes_in) AS bytes_in, \n    values(log.bytes_out) AS bytes_out, \n    values(log.direction) AS direction, \n    values(log.src_zone) AS src_zone, \n    values(log.dest_zone) AS dest_zone, \n    values(log.action) AS action, \n    count FROM datamodel=\"pan_firewall\" WHERE (nodename=\"log.traffic.end\" OR nodename=\"log.file\") by sourcetype log.serial_number log.session_id log.client_ip log.server_ip \n| rename log.* AS *",
+        "enableSmartSources": true,
+        "queryParameters": {
+          "earliest": "$global_time.earliest$",
+          "latest": "$global_time.latest$"
+        }
+      },
+      "name": "FILE_BASE"
+    },
+    "ds_RMnMfGUz": {
+      "type": "ds.chain",
+      "options": {
+        "extend": "ds_5JnQ2Wvb",
+        "enableSmartSources": true,
+        "query": "search log_subtype=\"file\" AND action=\"blocked\" \n| stats sum(count) as count"
+      },
+      "name": "Denied"
+    },
+    "ds_ACdPm3ZD": {
+      "type": "ds.chain",
+      "options": {
+        "query": "search log_subtype=\"file\" AND action=\"Allowed\" \n| stats sum(count) as count",
+        "extend": "ds_5JnQ2Wvb",
+        "enableSmartSources": true
+      },
+      "name": "Allow"
+    },
+    "ds_GLT5GRH6": {
+      "type": "ds.chain",
+      "options": {
+        "extend": "ds_5JnQ2Wvb",
+        "query": "| mvexpand action\n| eval time_in_seconds=_time\n| eval Time = strftime(_time, \"%Y-%m-%dT%H:%M:%S\")\n| rename action AS Action, app AS App, client_ip AS \"Client IP\", server_ip AS \"Server IP\", user AS User, file_name AS \"File Name\", session_id AS \"Session ID\", serial_number AS \"Serial Number\", src_zone AS \"Source Zone\", dest_zone AS \"Destination Zone\", count as Count\n| table Time Action App \"Client IP\" \"Server IP\" \"File Name\" \"Source Zone\" \"Destination Zone\" \n| sort -Time"
+      },
+      "name": "Events"
+    },
+    "ds_22V0idtC": {
+      "type": "ds.chain",
+      "options": {
+        "extend": "ds_5JnQ2Wvb",
+        "query": ""
+      },
+      "name": "Action"
+    },
+    "ds_2MmQ4xt1": {
+      "type": "ds.chain",
+      "options": {
+        "extend": "ds_5JnQ2Wvb",
+        "query": "| stats sum(bytes_in) AS \"Total Bytes In\" sum(bytes_out) AS \"Total Bytes Out\" sum(count) AS count by app \n| rename app as App, count as Count\n| sort - Count"
+      },
+      "name": "Stats"
+    },
+    "ds_7rTz5Eab": {
+      "type": "ds.chain",
+      "options": {
+        "extend": "ds_5JnQ2Wvb",
+        "query": "search log_subtype=\"file\" AND action=\"*\" \n| stats sum(count) as count"
+      },
+      "name": "Search_3"
+    },
+    "ds_wUrqaS2s": {
+      "type": "ds.chain",
+      "options": {
+        "extend": "ds_96ABQwBt",
+        "query": "| mvexpand bytes_in\n| stats sum(bytes_in) AS \"cbytes\" sum(count) AS count by log.client_ip \n| eval \"Inbound Bytes (MB)\"=round(cbytes/1024/1024, 2)\n| table log.client_ip \"Inbound Bytes (MB)\"\n| sort - Count"
+      },
+      "name": "Inbound"
+    },
+    "ds_96ABQwBt": {
+      "type": "ds.search",
+      "options": {
+        "query": "| tstats `pan_summariesonly` \n    latest(_time) AS _time, \n    values(log.log_subtype) AS log_subtype, \n    values(log.severity) AS severity, \n    values(log.app) AS app, \n    values(log.user) AS user, \n    values(log.threat_name) AS threat_name, \n    values(log.file_name) AS file_name \n    values(log.bytes_in) AS bytes_in, \n    values(log.bytes_out) AS bytes_out, \n    values(log.direction) AS direction, \n    values(log.src_zone) AS src_zone, \n    values(log.dest_zone) AS dest_zone, \n    values(log.action) AS action, \n    count FROM datamodel=\"pan_firewall\" WHERE (nodename=\"log.traffic.end\" AND log.client_ip!=\"$local_range$\" AND log.client_ip!=\"$remote_range$\") by sourcetype log.serial_number log.session_id log.client_ip log.server_ip ",
+        "enableSmartSources": true
+      },
+      "name": "Bytes Rec"
+    },
+    "ds_s6YdHKaN": {
+      "type": "ds.search",
+      "options": {
+        "query": "| tstats `pan_summariesonly` \n    latest(_time) AS _time, \n    values(log.log_subtype) AS log_subtype, \n    values(log.severity) AS severity, \n    values(log.app) AS app, \n    values(log.user) AS user, \n    values(log.threat_name) AS threat_name, \n    values(log.file_name) AS file_name \n    values(log.bytes_in) AS bytes_in, \n    values(log.bytes_out) AS bytes_out, \n    values(log.direction) AS direction, \n    values(log.src_zone) AS src_zone, \n    values(log.dest_zone) AS dest_zone, \n    values(log.action) AS action, \n    count FROM datamodel=\"pan_firewall\" WHERE (nodename=\"log.traffic.end\" AND log.client_ip=\"$local_range$\") by sourcetype log.serial_number log.session_id log.client_ip log.server_ip "
+      },
+      "name": "Bytes Send"
+    },
+    "ds_e9R67HGZ": {
+      "type": "ds.chain",
+      "options": {
+        "extend": "ds_s6YdHKaN",
+        "query": "| mvexpand bytes_out\n| stats sum(bytes_out) AS \"cbytes\" sum(count) AS count by log.client_ip \n| eval \"Outbound Bytes (MB)\"=round(cbytes/1024/1024, 2)\n| table log.client_ip \"Outbound Bytes (MB)\"\n| sort - Count"
+      },
+      "name": "Outbound"
+    },
+    "ds_QjMzrKx3": {
+      "type": "ds.chain",
+      "options": {
+        "extend": "ds_s6YdHKaN",
+        "query": "| timechart per_minute(bytes_in) as bytes_in, per_minute(bytes_out) AS bytes_out\n| eval \"Inbound MB\"=round(bytes_in/1024/1024, 2), \"Outbound MB\"=round(bytes_out/1024/1024, 2)"
+      },
+      "name": "Outbound Chart"
+    },
+    "ds_UjYnrm2T": {
+      "type": "ds.search",
+      "options": {
+        "query": "| tstats `pan_summariesonly` \n    latest(_time) AS _time, \n    values(log.log_subtype) AS log_subtype, \n    values(log.severity) AS severity, \n    values(log.app) AS app, \n    values(log.user) AS user, \n    values(log.threat_name) AS threat_name, \n    values(log.file_name) AS file_name \n    values(log.bytes_in) AS bytes_in, \n    values(log.bytes_out) AS bytes_out, \n    values(log.direction) AS direction, \n    values(log.src_zone) AS src_zone, \n    values(log.dest_zone) AS dest_zone, \n    values(log.action) AS action, \n    count FROM datamodel=\"pan_firewall\" WHERE (nodename=\"log.traffic.end\" OR nodename=\"log.file\")         by sourcetype log.serial_number log.session_id log.client_ip log.server_ip \n| rename log.* AS *"
+      },
+      "name": "Chart"
+    },
+    "ds_ZIHcs9bX": {
+      "type": "ds.chain",
+      "options": {
+        "extend": "ds_UjYnrm2T",
+        "query": "| timechart per_minute(bytes_in) as bytes_in, per_minute(bytes_out) AS bytes_out\n| eval \"Inbound MB\"=round(bytes_in/1024/1024, 2), \"Outbound MB\"=round(bytes_out/1024/1024, 2)"
+      },
+      "name": "Inbound Chart"
+    },
+    "ds_kTwFcT1X": {
+      "type": "ds.search",
+      "options": {
+        "query": "| tstats `pan_summariesonly` \r\n    latest(_time) AS _time, \r\n    values(log.log_subtype) AS log_subtype, \r\n    values(log.severity) AS severity, \r\n    values(log.app) AS app, \r\n    values(log.user) AS user, \r\n    values(log.threat_name) AS threat_name, \r\n    values(log.file_name) AS file_name, \r\n    values(log.bytes_in) AS bytes_in, \r\n    values(log.bytes_out) AS bytes_out, \r\n    values(log.direction) AS direction, \r\n    values(log.src_zone) AS src_zone, \r\n    values(log.dest_zone) AS dest_zone, \r\n    values(log.action) AS action, \r\n    count \r\n    FROM datamodel=\"pan_firewall\" \r\n    WHERE (nodename=\"log.traffic.end\" OR nodename=\"log.file\")         \r\n    by sourcetype log.serial_number log.session_id log.client_ip log.server_ip \r\n| rename log.* AS * \r\n| search (bytes_out>0 OR bytes_in>0) AND client_ip=\"10.50.50.*\"\r\n| rename bytes_out AS sbytes\r\n| timechart span=1m sum(sbytes) AS Volume_per_minute\r\n| eval Volume_MB=round(Volume_per_minute/1024/1024, 2)"
+      },
+      "name": "test"
+    },
+    "ds_dprMlwhq": {
+      "type": "ds.search",
+      "options": {
+        "query": "| from datamodel:User_Detail.Created |stats  count by Dest_Account |search Dest_Account!=\"*$\"|stats c as Total"
+      },
+      "name": "User Created"
+    },
+    "ds_XvBPp9tr": {
+      "type": "ds.search",
+      "options": {
+        "query": "| from datamodel:User_Detail.Deleted  |stats  count by Dest_Account |search Dest_Account!=\"*$\"|stats c as Total"
+      },
+      "name": "User Deleted"
+    },
+    "ds_poYOR9Co": {
+      "type": "ds.search",
+      "options": {
+        "query": "| from datamodel:User_Detail.Updated  |stats  count by Dest_Account |search Dest_Account!=\"*$\"|stats c as Total"
+      },
+      "name": "User Updated"
+    },
+    "ds_0EaELkA5": {
+      "type": "ds.search",
+      "options": {
+        "query": "| from datamodel:User_Detail.Disabled  |stats  count by Dest_Account|search Dest_Account!=\"*$\" |stats c as Total"
+      },
+      "name": "User Disabled"
+    },
+    "ds_pN98wt57": {
+      "type": "ds.search",
+      "options": {
+        "query": "| from datamodel:User_Detail.Locked  |stats  count by Dest_Account |search Dest_Account!=\"*$\"|stats c as Total"
+      },
+      "name": "User Locked"
+    },
+    "ds_6unhZ7FL": {
+      "type": "ds.search",
+      "options": {
+        "query": "| from datamodel:User_Detail.Enabled  |stats  count by Dest_Account |search Dest_Account!=\"*$\"|stats c as Total"
+      },
+      "name": "User Enabled"
+    },
+    "ds_z1650yzf": {
+      "type": "ds.search",
+      "options": {
+        "query": "| from datamodel:\"$change$\"\n| eval \"Event Time\"=strftime(_time,\"%Y-%m-%d %H:%M:%S\")\n| rename Src_Account as \"Source Account\"  Dest_Account as \"Destination Account\" Msg as \"Message\"\n| table \" Event Time\" \"Source Account\" \"Destination Account\" \"ComputerName\" Domain Message\n|search \"Source Account\"!=\"*$\"\n|search \"Destination Account\"!=\"*$\"",
+        "enableSmartSources": true
+      },
+      "name": "User Events"
+    }
+  },
+  "defaults": {
+    "dataSources": {
+      "ds.search": {
+        "options": {
+          "queryParameters": {
+            "latest": "$global_time.latest$",
+            "earliest": "$global_time.earliest$"
+          }
+        }
+      }
+    }
+  },
+  "inputs": {
+    "input_global_trp": {
+      "type": "input.timerange",
+      "options": {
+        "token": "global_time",
+        "defaultValue": "-24h@h,now"
+      },
+      "title": "Global Time Range"
+    },
+    "input_3Gzu5zjh": {
+      "options": {
+        "items": [
+          {
+            "label": "All",
+            "value": "*"
+          },
+          {
+            "label": "Allow",
+            "value": "Allowed"
+          },
+          {
+            "label": "Block",
+            "value": "Blocked"
+          }
+        ],
+        "defaultValue": "*",
+        "token": "ACTION"
+      },
+      "title": "Action",
+      "type": "input.dropdown",
+      "dataSources": {}
+    },
+    "input_xEgBRG21": {
+      "options": {
+        "defaultValue": "10.10.10.*",
+        "token": "local_range"
+      },
+      "title": "Local Range",
+      "type": "input.text"
+    },
+    "input_rMwQpkz5": {
+      "options": {
+        "defaultValue": "172.16.0.*",
+        "token": "remote_range"
+      },
+      "title": "Remote Range",
+      "type": "input.text"
+    }
+  },
+  "layout": {
+    "options": {
+      "submitButton": true,
+      "submitOnDashboardLoad": true
+    },
+    "globalInputs": [
+      "input_global_trp",
+      "input_3Gzu5zjh",
+      "input_xEgBRG21",
+      "input_rMwQpkz5"
+    ],
+    "tabs": {
+      "items": [
+        {
+          "layoutId": "layout_1",
+          "label": "Palo Files"
+        },
+        {
+          "layoutId": "layout_tgEi1V6y",
+          "label": "Malware"
+        },
+        {
+          "layoutId": "layout_so1EiCJn",
+          "label": "Usage"
+        }
+      ]
+    },
+    "layoutDefinitions": {
+      "layout_1": {
+        "type": "grid",
+        "structure": [
+          {
+            "item": "viz_APEfx8sH",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 0,
+              "w": 488,
+              "h": 287
+            }
+          },
+          {
+            "item": "viz_7D3ECZ6b",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 287,
+              "w": 464,
+              "h": 834
+            }
+          },
+          {
+            "item": "viz_MH3kMKd3",
+            "type": "block",
+            "position": {
+              "x": 464,
+              "y": 287,
+              "w": 976,
+              "h": 834
+            }
+          },
+          {
+            "item": "viz_m75L5Rbg",
+            "type": "block",
+            "position": {
+              "x": 488,
+              "y": 0,
+              "w": 476,
+              "h": 287
+            }
+          },
+          {
+            "item": "viz_0Up8gvFx",
+            "type": "block",
+            "position": {
+              "x": 964,
+              "y": 0,
+              "w": 476,
+              "h": 287
+            }
+          }
+        ],
+        "options": {
+          "width": 1440,
+          "height": 960
+        }
+      },
+      "layout_tgEi1V6y": {
+        "type": "grid",
+        "structure": []
+      },
+      "layout_so1EiCJn": {
+        "type": "grid",
+        "structure": [
+          {
+            "item": "viz_yEus0iOo",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 0,
+              "w": 600,
+              "h": 64
+            }
+          },
+          {
+            "item": "viz_wdCQtzA8",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 64,
+              "w": 600,
+              "h": 390
+            }
+          },
+          {
+            "item": "viz_FNvmoi8i",
+            "type": "block",
+            "position": {
+              "x": 0,
+              "y": 454,
+              "w": 600,
+              "h": 340
+            }
+          },
+          {
+            "item": "viz_Ggk13QmY",
+            "type": "block",
+            "position": {
+              "x": 600,
+              "y": 0,
+              "w": 600,
+              "h": 64
+            }
+          },
+          {
+            "item": "viz_RnApLNLq",
+            "type": "block",
+            "position": {
+              "x": 600,
+              "y": 64,
+              "w": 600,
+              "h": 390
+            }
+          },
+          {
+            "item": "viz_HmfkSLUs",
+            "type": "block",
+            "position": {
+              "x": 600,
+              "y": 454,
+              "w": 600,
+              "h": 340
+            }
+          }
+        ]
+      }
+    }
+  },
+  "description": "",
+  "title": "Custom Palo",
+  "applicationProperties": {
+    "collapseNavigation": false
+  }
+}

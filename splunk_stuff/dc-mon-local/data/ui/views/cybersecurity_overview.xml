@@ -1,0 +1,254 @@
+<dashboard version="1.1" theme="dark">
+  <label>Overview</label>
+  <description>This Dashboards cover todays event count, To drilldown further click in the KPIs.</description>
+  <row>
+    <panel>
+      <single>
+        <title>Total Successful RDP Access</title>
+        <search>
+          <query>| tstats  count from datamodel=Remote_Access_Authentication.Authentication where Authentication.EventCode="4648" by _time Authentication.EventCode Authentication.ComputerName Authentication.Process_Name Authentication.src_nt_domain Authentication.src_user Authentication.user Authentication.dest_nt_domain Authentication.dest Authentication.action 
+| `Drop_dm_object_name(Authentication)` 
+| rename src_nt_domain as Domain src_user as Dest_Host user as Src_Account dest_nt_domain as Source_System_Name dest as Target action as Action count as Count ComputerName as Src_Host 
+| eval Event_Time=strftime(_time,"%Y-%m-%d %H:%M:%S") 
+| search Src_Host="DC*.dsu.ccdc" Process_Name="C:\\Windows\\System32\\svchost.exe" 
+| table Event_Time Src_Account Src_Host Domain Dest_Host Target Action Count|timechart count span=1d</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">all</option>
+        <option name="rangeColors">["0x53a051","0x53a051","0x53a051","0x53a051","0x53a051"]</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="useColors">1</option>
+        <drilldown>
+          <link target="_blank">/app/Domain-Controller-Monitoring/remote_access</link>
+        </drilldown>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Total Failed RDP Access</title>
+        <search>
+          <query>| tstats  count from datamodel=Remote_Access_Authentication.Authentication where Authentication.EventCode="4625" by _time Authentication.EventCode Authentication.src_nt_domain Authentication.src_user Authentication.src Authentication.user Authentication.dest_nt_domain Authentication.dest Authentication.action Authentication.signature Authentication.Process_Name Authentication.Source_Port Authentication.Logon_Type Authentication.ComputerName 
+| `Drop_dm_object_name(Authentication)` 
+| rename src_nt_domain as Source_Domain src_user as Source_System src as Src_Host user as Src_Account dest_nt_domain as Domain dest as Dest_Host signature as Failure_Reason Process_Name as ProcessName Source_Port as Port Logon_Type as LogonType action as Action count as Count 
+| eval Event_Time=strftime(_time,"%Y-%m-%d %H:%M:%S") 
+| search ProcessName IN ("-","C:\\Windows\\System32\\svchost.exe") ComputerName="DC*.dsu.ccdc" Port IN ("-",0) 
+| search LogonType!="4" Src_Host!="unknown" 
+| table Event_Time Src_Account Src_Host Domain Dest_Host Action LogonType Failure_Reason Count
+|timechart count span=1d</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">all</option>
+        <option name="rangeColors">["0xdc4e41","0xdc4e41","0xdc4e41","0xdc4e41","0xdc4e41"]</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="useColors">1</option>
+        <drilldown>
+          <link target="_blank">/app/Domain-Controller-Monitoring/failed_remote_access</link>
+        </drilldown>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Total User Created</title>
+        <search>
+          <query>| from datamodel:User_Detail.Created |timechart count span=1d</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">all</option>
+        <option name="rangeColors">["0xf8be34","0xf8be34","0xf8be34","0xf8be34","0xf8be34"]</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="useColors">1</option>
+        <drilldown>
+          <link target="_blank">/app/Domain-Controller-Monitoring/avo_user_modified_</link>
+        </drilldown>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Total User Deleted</title>
+        <search>
+          <query>| from datamodel:User_Detail.Deleted |timechart count span=1d</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">all</option>
+        <option name="rangeColors">["0xf1813f","0xf1813f","0xf1813f","0xf1813f","0xf1813f"]</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="useColors">1</option>
+        <drilldown>
+          <link target="_blank">/app/Domain-Controller-Monitoring/avo_user_modified_</link>
+        </drilldown>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Total User Updated</title>
+        <search>
+          <query>| from datamodel:User_Detail.Updated | timechart count span=1d</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">all</option>
+        <option name="rangeColors">["0x53a051","0x53a051","0x53a051","0x53a051","0x53a051"]</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="useColors">1</option>
+        <drilldown>
+          <link target="_blank">/app/Domain-Controller-Monitoring/avo_user_modified_</link>
+        </drilldown>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Unwanted User Logins</title>
+        <search>
+          <query>| tstats count from datamodel=Login_Failures where "Disabled" OR "locked" by _time Loginfailed.Account_Name Loginfailed.ComputerName Loginfailed.Failure_Reason 
+| search Loginfailed.Account_Name!="-" 
+| rename Loginfailed.Account_Name as "Account Name" Loginfailed.ComputerName as "Computer Name" Loginfailed.Failure_Reason as "Failure Reason"|timechart count span=1d</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">all</option>
+        <option name="rangeColors">["0xf8be34","0xf8be34","0xf8be34","0xf8be34","0xf8be34"]</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="useColors">1</option>
+        <drilldown>
+          <link target="_blank">/app/Domain-Controller-Monitoring/unwanted_logins</link>
+        </drilldown>
+      </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <single>
+        <title>Local Logins</title>
+        <search>
+          <query>index=wineventlog* EventCode=4624 
+| eval matched="0" 
+| stats c by _time Account_Name ComputerName src_ip  Account_Domain action matched 
+| join type=left Account_Name 
+    [| inputlookup User_list.csv 
+    | eval matched="1" 
+    | table Account_Name matched] 
+| search matched!="1" AND Account_Name!="-" AND Account_Name!="*$" AND Account_Name!="system" AND Account_Name!="*firewall*" AND Account_Name!="*ldap*" AND Account_Name!="UMFD*" AND Account_Name!="admin*" AND Account_Name!="DWM*" AND Account_Domain!="-" AND Account_Domain!=`domain`|fields - matched c|timechart count span=1d</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">all</option>
+        <option name="rangeColors">["0x53a051","0x53a051","0x53a051","0x53a051","0x53a051"]</option>
+        <option name="useColors">1</option>
+        <drilldown>
+          <link target="_blank">/app/Domain-Controller-Monitoring/out_of_organization_logins</link>
+        </drilldown>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Total User Disabled</title>
+        <search>
+          <query>| from datamodel:User_Detail.Disabled |timechart count span=1d</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">all</option>
+        <option name="rangeColors">["0x555","0x555","0x555","0x555","0x555"]</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="useColors">1</option>
+        <drilldown>
+          <link target="_blank">/app/Domain-Controller-Monitoring/avo_user_modified_</link>
+        </drilldown>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Total User Locked</title>
+        <search>
+          <query>| from datamodel:User_Detail.Locked |timechart count span=1d</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">all</option>
+        <option name="rangeColors">["0x006d9c","0x006d9c","0x006d9c","0x006d9c","0x006d9c"]</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="useColors">1</option>
+        <drilldown>
+          <link target="_blank">/app/Domain-Controller-Monitoring/avo_user_modified_</link>
+        </drilldown>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Total User Enabled</title>
+        <search>
+          <query>| from datamodel:User_Detail.Enabled |timechart count span=1d</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">all</option>
+        <option name="rangeColors">["0xdc4e41","0xdc4e41","0xdc4e41","0xdc4e41","0xdc4e41"]</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="useColors">1</option>
+        <drilldown>
+          <link target="_blank">/app/Domain-Controller-Monitoring/avo_user_modified_</link>
+        </drilldown>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Total Commands Ran on AD/DC</title>
+        <search>
+          <query>`Domain-Controller-Security-index` source="*Power*" "ComputerName"="*"
+| rex field=_raw "User =\s+.*\\\(?&lt;Username&gt;.*)" 
+| search Username!="SYSTEM" 
+| rex field=_raw "Message=(?&lt;Inputs&gt;[\D\d\n]*)Context" 
+| rex field=_raw "User =\s+.*\\\(?&lt;Username&gt;.*)" 
+| search Username!="SYSTEM" 
+| rex field=_raw "Message=(?&lt;Inputs&gt;[\D\d\n]*)Context"  
+| rex field=Message mode=sed "s/CommandInvocation\(//g" 
+| rex field=Message mode=sed "s/\)://g" 
+| rex field=_raw "Host\s+Application\s+=\s+.*\\\(?&lt;Application&gt;.*)" 
+| stats c by _time Username ComputerName Message Inputs Application|timechart count span=1d</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">all</option>
+        <option name="rangeColors">["0x555","0x555","0x555","0x555","0x555"]</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="useColors">1</option>
+        <drilldown>
+          <link target="_blank">/app/Domain-Controller-Monitoring/commands_ran_on_addc_</link>
+        </drilldown>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Total GPO's Changed</title>
+        <search>
+          <query>| from datamodel:Group_Policy |dedup GUID |table _time GUID |timechart count span=1d</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">all</option>
+        <option name="rangeColors">["0xf1813f","0xf1813f","0xf1813f","0xf1813f","0xf1813f"]</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="useColors">1</option>
+        <drilldown>
+          <link target="_blank">/app/Domain-Controller-Monitoring/avo_group_policy_modified_</link>
+        </drilldown>
+      </single>
+    </panel>
+  </row>
+</dashboard>

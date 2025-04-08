@@ -1,0 +1,136 @@
+<form version="1.1" theme="dark">
+  <label>Users Modified</label>
+  <fieldset submitButton="true" autoRun="true">
+    <input type="time" token="time">
+      <label>Time Range</label>
+      <default>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <single>
+        <title>Total User Created</title>
+        <search>
+          <query>| from datamodel:User_Detail.Created |stats  count by Dest_Account |search Dest_Account!="*$"|stats c as Total</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">all</option>
+        <option name="rangeColors">["0x53a051","0x53a051","0x53a051","0x53a051","0x53a051"]</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="useColors">1</option>
+        <drilldown>
+          <set token="change">Created</set>
+        </drilldown>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Total User  Deleted</title>
+        <search>
+          <query>| from datamodel:User_Detail.Deleted  |stats  count by Dest_Account |search Dest_Account!="*$"|stats c as Total</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">all</option>
+        <option name="rangeColors">["0xdc4e41","0xdc4e41","0xdc4e41","0xdc4e41","0xdc4e41"]</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="useColors">1</option>
+        <drilldown>
+          <set token="change">Deleted</set>
+        </drilldown>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Total User  Updated</title>
+        <search>
+          <query>| from datamodel:User_Detail.Updated  |stats  count by Dest_Account |search Dest_Account!="*$"|stats c as Total</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">all</option>
+        <option name="rangeColors">["0xf8be34","0xf8be34","0xf8be34","0xf8be34","0xf8be34"]</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="useColors">1</option>
+        <drilldown>
+          <set token="change">Updated</set>
+        </drilldown>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Total User Disabled</title>
+        <search>
+          <query>| from datamodel:User_Detail.Disabled  |stats  count by Dest_Account|search Dest_Account!="*$" |stats c as Total</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">all</option>
+        <option name="rangeColors">["0xf1813f","0xf1813f","0xf1813f","0xf1813f","0xf1813f"]</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="useColors">1</option>
+        <drilldown>
+          <set token="change">Disabled</set>
+        </drilldown>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Total User Locked</title>
+        <search>
+          <query>| from datamodel:User_Detail.Locked  |stats  count by Dest_Account |search Dest_Account!="*$"|stats c as Total</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">all</option>
+        <option name="rangeColors">["0x555","0x555","0x555","0x555","0x555"]</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="useColors">1</option>
+        <drilldown>
+          <set token="change">Locked</set>
+        </drilldown>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Total User Enabled</title>
+        <search>
+          <query>| from datamodel:User_Detail.Enabled  |stats  count by Dest_Account |search Dest_Account!="*$"|stats c as Total</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">all</option>
+        <option name="rangeColors">["0x006d9c","0x006d9c","0x006d9c","0x006d9c","0x006d9c"]</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="useColors">1</option>
+        <drilldown>
+          <set token="change">Enabled</set>
+        </drilldown>
+      </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>Total Events</title>
+        <search>
+          <query>| from datamodel:"User_Detail".$change$ | eval "Event Time"=strftime(_time,"%Y-%m-%d %H:%M:%S") |stats count by "Event Time" Src_Account Dest_Account ComputerName Domain Msg|rename Src_Account as "Source Account"  Dest_Account as "Destination Account" Msg as "Message"|search "Source Account"!="*$"|search "Destination Account"!="*$"</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+  </row>
+</form>

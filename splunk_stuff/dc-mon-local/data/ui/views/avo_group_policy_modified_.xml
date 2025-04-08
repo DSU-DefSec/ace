@@ -1,0 +1,135 @@
+<form version="1.1" theme="dark">
+  <label>Group Policy Audit</label>
+  <fieldset submitButton="true" autoRun="false">
+    <input type="multiselect" token="gpo">
+      <label>GPO Name</label>
+      <choice value="*">All</choice>
+      <default>*</default>
+      <initialValue>*</initialValue>
+      <valuePrefix>"*</valuePrefix>
+      <valueSuffix>*"</valueSuffix>
+      <delimiter> , </delimiter>
+      <fieldForLabel>GPO Name</fieldForLabel>
+      <fieldForValue>GPO Name</fieldForValue>
+      <search>
+        <query>| tstats count from datamodel=Group_Policy by  gpo.GUID 
+| rename  gpo.GUID as "GUID"|fields "GUID"|join GUID [|inputlookup GpoName.csv]|fields GPOName |fields - c|rename GPOName as "GPO Name"</query>
+        <earliest>$time.earliest$</earliest>
+        <latest>$time.latest$</latest>
+      </search>
+    </input>
+    <input type="time" token="time">
+      <label>Time Range</label>
+      <default>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <single>
+        <title>Total GPO</title>
+        <search>
+          <query>|inputlookup GpoName.csv|stats dc(GPOName)</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">all</option>
+        <option name="rangeColors">["0xf8be34","0xf8be34","0xf8be34","0xf8be34","0xf8be34"]</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="useColors">1</option>
+        <drilldown>
+          <set token="hide">$click.value$</set>
+          <unset token="form.hide_panel"></unset>
+        </drilldown>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Total GPO's Changed</title>
+        <search>
+          <query>| from datamodel:Group_Policy |stats c by GUID |stats c as Total</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0x53a051","0x53a051","0x53a051","0x53a051","0x53a051"]</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <chart>
+        <title>Top Users</title>
+        <search>
+          <query>| tstats count from datamodel=Group_Policy by  gpo.Account_Name|sort - c|rename gpo.Account_Name as "Account Name"</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel depends="$hide$">
+      <input type="checkbox" token="To Hide Panal Double Click the Below Box" searchWhenChanged="true">
+        <choice value="hide">Hide Panel</choice>
+        <change>
+          <condition value="hide">
+            <unset token="hide"></unset>
+          </condition>
+        </change>
+      </input>
+      <table>
+        <title>Total GPO List</title>
+        <search>
+          <query>|inputlookup GpoName.csv |stats c by GPOName|fields - c</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+    <panel>
+      <viz type="sankey_diagram_app.sankey_diagram">
+        <search>
+          <query>| tstats count from datamodel=Group_Policy by  gpo.Account_Name  gpo.GUID
+| rename gpo.Account_Name as "Account Name"  gpo.GUID as "GUID"|join GUID [|inputlookup GpoName.csv]|rename GPOName as "GPO Name"|stats c by "Account Name" "GPO Name"</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="height">479</option>
+        <option name="refresh.display">progressbar</option>
+      </viz>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>Group Policy changed</title>
+        <search>
+          <query>| tstats count from datamodel=Group_Policy by _time gpo.Account_Name gpo.ComputerName gpo.GUID gpo.Object_Server gpo.Object_Name 
+| rename gpo.Account_Name as "Account Name" gpo.ComputerName as "Computer Name" gpo.GUID as "GUID" gpo.Object_Server as "Object Server" gpo.Object_Name as "Object Name" 
+| join GUID 
+    [| inputlookup GpoName.csv 
+    | rename GPOName as "GPO Name"] 
+| eval "Event Time"=strftime(_time,"%Y-%m-%d %H:%M:%S") 
+| fields "Event Time" "Account Name" "Computer Name" "GPO Name" "GUID" "Object Server" "Object Name" 
+| search "GUID" IN ("$gpo$") 
+| fields - _time</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+  </row>
+</form>

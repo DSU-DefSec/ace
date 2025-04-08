@@ -1,0 +1,211 @@
+<form version="1.1" theme="dark">
+  <label>Successful</label>
+  <fieldset submitButton="false">
+    <input type="multiselect" token="host">
+      <label>Host</label>
+      <delimiter>  , </delimiter>
+      <fieldForLabel>Domain Controller</fieldForLabel>
+      <fieldForValue>Domain Controller</fieldForValue>
+      <search>
+        <query>|`Domain-Controller-list`|stats c by "Domain Controller"</query>
+        <earliest>$time.earliest$</earliest>
+        <latest>$time.latest$</latest>
+      </search>
+      <valuePrefix>"*</valuePrefix>
+      <valueSuffix>*"</valueSuffix>
+      <choice value="*">All</choice>
+      <default>*</default>
+      <initialValue>*</initialValue>
+    </input>
+    <input type="time" token="time" searchWhenChanged="true">
+      <label>Time Range</label>
+      <default>
+        <earliest>@d</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
+  <row>
+    <panel id="panel1">
+      <single>
+        <title>Total Users</title>
+        <search>
+          <query>| tstats  count from datamodel=Remote_Access_Authentication.Authentication where Authentication.EventCode="4648" by _time Authentication.EventCode Authentication.ComputerName Authentication.Process_Name Authentication.src_nt_domain Authentication.src_user Authentication.user Authentication.dest_nt_domain Authentication.dest Authentication.action |rex field=Authentication.src_user "(?&lt;Src_user&gt;.*)\$" |rex field=Authentication.ComputerName "(?&lt;Src_Host&gt;.*)\.\w+\.\w+"
+| `Drop_dm_object_name(Authentication)` 
+| rename src_nt_domain as Domain Src_user as Dest_Host user as Src_Account dest_nt_domain as Source_System_Name dest as Target action as Action count as Count  |join  Src_Host [|`Domain-Controller-list`|rename "Domain Controller" as Src_Host]
+| eval Event_Time=strftime(_time,"%Y-%m-%d %H:%M:%S") 
+| search  Process_Name="C:\\Windows\\System32\\svchost.exe" |search Src_Account!="*app*"
+| table Event_Time Src_Account Src_Host Domain Dest_Host Target Action  Count Count|eval Src_Account=lower(Src_Account)|stats c by Src_Account|stats c as total</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0xf8be34","0xf8be34","0xf8be34","0xf8be34","0xf8be34"]</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="useColors">1</option>
+      </single>
+      <html>
+        <style>
+          #panel1{
+            width:20% !important;
+            height:50% !important;
+          }
+          #panel2{
+            width:40% !important;
+            height:50% !important;
+          }
+          #panel3{
+            width:40% !important;
+            height:50% !important;
+          }
+        </style>
+      </html>
+    </panel>
+    <panel id="panel2">
+      <chart>
+        <title>Event Count</title>
+        <search>
+          <query>| tstats count from datamodel=Remote_Access_Authentication.Authentication where Authentication.EventCode="4648" by _time Authentication.EventCode Authentication.ComputerName Authentication.Process_Name Authentication.src_nt_domain Authentication.src_user Authentication.user Authentication.dest_nt_domain Authentication.dest Authentication.action 
+| rex field=Authentication.src_user "(?&lt;Src_user&gt;.*)\$" 
+| rex field=Authentication.ComputerName "(?&lt;Src_Host&gt;.*)\.\w+\.\w+" 
+| `Drop_dm_object_name(Authentication)` 
+| rename src_nt_domain as Domain Src_user as Dest_Host user as Src_Account dest_nt_domain as Source_System_Name dest as Target action as Action count as Count 
+| join Src_Host 
+    [| `Domain-Controller-list` 
+    | rename "Domain Controller" as Src_Host] 
+| eval Event_Time=strftime(_time,"%Y-%m-%d %H:%M:%S") 
+| search Process_Name="C:\\Windows\\System32\\svchost.exe" 
+| table _time  Event_Time Src_Account Src_Host Domain Dest_Host Target Action Count 
+| timechart  count span=5m</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="charting.chart">area</option>
+        <option name="charting.drilldown">none</option>
+        <option name="height">150</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+    <panel id="panel3">
+      <single>
+        <title>User count By Host</title>
+        <search>
+          <query>| tstats  count from datamodel=Remote_Access_Authentication.Authentication where Authentication.EventCode="4648" by _time Authentication.EventCode Authentication.ComputerName Authentication.Process_Name Authentication.src_nt_domain Authentication.src_user Authentication.user Authentication.dest_nt_domain Authentication.dest Authentication.action |rex field=Authentication.src_user "(?&lt;Src_user&gt;.*)\$" |rex field=Authentication.ComputerName "(?&lt;Src_Host&gt;.*)\.\w+\.\w+"
+| `Drop_dm_object_name(Authentication)` 
+| rename src_nt_domain as Domain Src_user as Dest_Host user as Src_Account dest_nt_domain as Source_System_Name dest as Target action as Action count as Count  |join  Src_Host [|`Domain-Controller-list`|rename "Domain Controller" as Src_Host]
+| eval Event_Time=strftime(_time,"%Y-%m-%d %H:%M:%S") 
+| search  Process_Name="C:\\Windows\\System32\\svchost.exe"  |search Src_Account!="*app*"
+| table Event_Time Src_Account Src_Host Domain Dest_Host Target Action Count|eval Src_Account=lower(Src_Account)|chart dc(Src_Account) over   Dest_Host</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="height">184</option>
+        <option name="rangeColors">["0x53a051","0x53a051","0x53a051","0x53a051","0x53a051"]</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">1</option>
+        <option name="trellis.size">large</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Top User</title>
+        <search>
+          <query>| tstats  count from datamodel=Remote_Access_Authentication.Authentication where Authentication.EventCode="4648" by _time Authentication.EventCode Authentication.ComputerName Authentication.Process_Name Authentication.src_nt_domain Authentication.src_user Authentication.user Authentication.dest_nt_domain Authentication.dest Authentication.action |rex field=Authentication.src_user "(?&lt;Src_user&gt;.*)\$" |rex field=Authentication.ComputerName "(?&lt;Src_Host&gt;.*)\.\w+\.\w+"
+| `Drop_dm_object_name(Authentication)` 
+| rename src_nt_domain as Domain Src_user as Dest_Host user as Src_Account dest_nt_domain as Source_System_Name dest as Target action as Action count as Count  |join  Src_Host [|`Domain-Controller-list`|rename "Domain Controller" as Src_Host]
+| eval Event_Time=strftime(_time,"%Y-%m-%d %H:%M:%S") 
+| search  Process_Name="C:\\Windows\\System32\\svchost.exe" | search Dest_Host IN ($host$) |search Src_Account!="*app*"
+| table Event_Time Src_Account Src_Host Domain Dest_Host Target Action Count|eval Src_Account=lower(Src_Account)
+| stats c by Src_Account 
+| sort - c</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.drilldown">none</option>
+        <option name="height">198</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+    <panel>
+      <viz type="sankey_diagram_app.sankey_diagram">
+        <title>User to Computer</title>
+        <search>
+          <query>| tstats  count from datamodel=Remote_Access_Authentication.Authentication where Authentication.EventCode="4648" by _time Authentication.EventCode Authentication.ComputerName Authentication.Process_Name Authentication.src_nt_domain Authentication.src_user Authentication.user Authentication.dest_nt_domain Authentication.dest Authentication.action |rex field=Authentication.src_user "(?&lt;Src_user&gt;.*)\$" |rex field=Authentication.ComputerName "(?&lt;Src_Host&gt;.*)\.\w+\.\w+"
+| `Drop_dm_object_name(Authentication)` 
+| rename src_nt_domain as Domain Src_user as Dest_Host user as Src_Account dest_nt_domain as Source_System_Name dest as Target action as Action count as Count  |join  Src_Host [|`Domain-Controller-list`|rename "Domain Controller" as Src_Host]
+| eval Event_Time=strftime(_time,"%Y-%m-%d %H:%M:%S") 
+| search  Process_Name="C:\\Windows\\System32\\svchost.exe" 
+|search Src_Account!="*app*"
+| table Event_Time Src_Account Src_Host Domain Dest_Host Target Action Count|eval Src_Account=lower(Src_Account)
+| stats c by Src_Account Dest_Host</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="height">201</option>
+        <option name="refresh.display">progressbar</option>
+      </viz>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>Total Events</title>
+        <search>
+          <query>| tstats  count from datamodel=Remote_Access_Authentication.Authentication where Authentication.EventCode="4648" by _time Authentication.EventCode Authentication.ComputerName Authentication.Process_Name Authentication.src_nt_domain Authentication.src_user Authentication.user Authentication.dest_nt_domain Authentication.dest Authentication.action |rex field=Authentication.src_user "(?&lt;Src_user&gt;.*)\$" |rex field=Authentication.ComputerName "(?&lt;Src_Host&gt;.*)\.\w+\.\w+"
+| `Drop_dm_object_name(Authentication)` 
+| rename src_nt_domain as Domain Src_user as Dest_Host user as Src_Account dest_nt_domain as Source_System_Name dest as Target action as Action count as Count  |join  Src_Host [|`Domain-Controller-list`|rename "Domain Controller" as Src_Host]
+| eval Event_Time=strftime(_time,"%Y-%m-%d %H:%M:%S") 
+| search  Process_Name="C:\\Windows\\System32\\svchost.exe" | search Dest_Host IN ($host$) |search Src_Account!="*app*"
+| table Event_Time Src_Account Src_Host Domain Dest_Host Target Action Count|eval Src_Account=lower(Src_Account)|rename Event_Time as "Event Time" Src_Account as "Source Account" Src_Host as "Source System" Dest_Host as "Destination System"</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <drilldown>
+          <set token="time">$row.Event Time$</set>
+          <set token="src">$row.Source Account$</set>
+          <set token="dest">$row.Destination Host$</set>
+        </drilldown>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <event>
+        <title>Raw Events</title>
+        <search>
+          <query>|   datamodel Remote_Access_Authentication search|search Authentication.EventCode="4648"| eval Event_Time=strftime(_time,"%Y-%m-%d %H:%M:%S") |search Event_Time="$time$" |search "$src$" OR "$dest$"</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">10</option>
+        <option name="list.drilldown">none</option>
+        <option name="list.wrap">1</option>
+        <option name="maxLines">5</option>
+        <option name="raw.drilldown">full</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">0</option>
+        <option name="table.drilldown">all</option>
+        <option name="table.sortDirection">asc</option>
+        <option name="table.wrap">1</option>
+        <option name="type">list</option>
+      </event>
+    </panel>
+  </row>
+</form>

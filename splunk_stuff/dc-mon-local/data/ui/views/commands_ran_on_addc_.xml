@@ -1,0 +1,89 @@
+<form version="1.1" theme="dark">
+  <label>CMDs Executed</label>
+  <fieldset submitButton="true" autoRun="false">
+    <input type="multiselect" token="host">
+      <label>Host</label>
+      <valuePrefix>"*</valuePrefix>
+      <valueSuffix>*"</valueSuffix>
+      <delimiter> , </delimiter>
+      <fieldForLabel>Domain Controller</fieldForLabel>
+      <fieldForValue>Domain Controller</fieldForValue>
+      <search>
+        <query>|`Domain-Controller-list`|stats c by "Domain Controller"</query>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </search>
+      <choice value="*">All</choice>
+    </input>
+    <input type="time" token="time" searchWhenChanged="true">
+      <label>Time Range</label>
+      <default>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <single>
+        <title>Total Commands Ran</title>
+        <search>
+          <query>`Domain-Controller-Security-index` source="*Power*" 
+| rex field=_raw "User =\s+.*\\\(?&lt;Username&gt;.*)" |search Username!="SYSTEM"|stats c as Total</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0x53a051","0x53a051","0x53a051","0x53a051","0x53a051"]</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <viz type="sankey_diagram_app.sankey_diagram">
+        <title>User to Command</title>
+        <search>
+          <query>`Domain-Controller-Security-index` source="*Power*" ComputerName IN ($host$)
+| rex field=_raw "User =\s+.*\\\(?&lt;Username&gt;.*)" 
+| search Username!="SYSTEM" 
+| rex field=_raw "Message=(?&lt;Inputs&gt;[\D\d\n]*)Context" 
+| rex field=Message mode=sed "s/CommandInvocation\(//g" 
+| rex field=Message mode=sed "s/\)://g" 
+| rex field=_raw "Host\s+Application\s+=\s+.*\\\(?&lt;Application&gt;.*)" 
+| stats c by  Username Message</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </viz>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>Total Events</title>
+        <search>
+          <query>`Domain-Controller-Security-index` source="*Power*" "ComputerName" IN ($host$)
+| rex field=_raw "User =\s+.*\\\(?&lt;Username&gt;.*)" 
+| search Username!="SYSTEM" 
+| rex field=_raw "Message=(?&lt;Inputs&gt;[\D\d\n]*)Context" 
+| rex field=_raw "User =\s+.*\\\(?&lt;Username&gt;.*)" 
+| search Username!="SYSTEM" 
+| rex field=_raw "Message=(?&lt;Inputs&gt;[\D\d\n]*)Context"  
+| rex field=Message mode=sed "s/CommandInvocation\(//g" 
+| rex field=Message mode=sed "s/\)://g" 
+| rex field=_raw "Host\s+Application\s+=\s+.*\\\(?&lt;Application&gt;.*)" | eval "Event Time"=strftime(_time,"%Y-%m-%d %H:%M:%S") 
+| stats count by "Event Time"  Username ComputerName Message Inputs Application</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+  </row>
+</form>

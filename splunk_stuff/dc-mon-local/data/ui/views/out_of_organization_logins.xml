@@ -1,0 +1,102 @@
+<form version="1.1" theme="dark">
+  <label>Local Account Logins</label>
+  <fieldset submitButton="true" autoRun="false">
+    <input type="dropdown" token="com" searchWhenChanged="true">
+      <label>Filter By Computer Name</label>
+      <choice value="*">ALL</choice>
+      <default>*</default>
+      <initialValue>*</initialValue>
+      <fieldForLabel>Computer Name</fieldForLabel>
+      <fieldForValue>Computer Name</fieldForValue>
+      <search>
+        <query>`Domain-user` EventCode IN (4624 , 4625) 
+| eval matched="0" 
+| stats c by  Account_Name ComputerName src_ip Account_Domain action matched 
+| join type=left Account_Name 
+    [| inputlookup User_list.csv 
+    | eval matched="1" 
+    | table Account_Name matched] 
+| search matched!="1" AND Account_Name!="-" AND Account_Name!="*$" AND Account_Name!="system" AND Account_Name!="*firewall*" AND Account_Name!="*ldap*" AND Account_Name!="UMFD*"  AND Account_Name!="DWM*" AND Account_Domain!="-" AND Account_Name!="*logon*" AND Account_Domain!=`domain`|fields - matched c|rename Account_Name as "Acount Name" ComputerName as "Computer Name" src_ip as "IP" Account_Domain as "Account Domain" action as Action|fields  "Computer Name"|dedup "Computer Name"</query>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </search>
+    </input>
+    <input type="time" token="time" searchWhenChanged="true">
+      <label>Time Range</label>
+      <default>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <title>Latest Events</title>
+      <table>
+        <title>To Drilldown further please Click on the Result below</title>
+        <search>
+          <query>`Domain-user` EventCode IN (4624 , 4625)
+| eval matched="0" 
+| stats Count latest(_time) as "Time" by Account_Name ComputerName src_ip Account_Domain action matched 
+| search ComputerName="$com$" AND Account_Name!="*$" 
+| join type=left Account_Name 
+    [| inputlookup User_list.csv 
+    | eval matched="1" 
+    | table Account_Name matched] 
+| search matched!="1" AND Account_Name!="-" AND Account_Name!="*$" AND Account_Name!="system" AND Account_Name!="*firewall*" AND Account_Name!="*ldap*" AND Account_Name!="UMFD*" AND Account_Name!="DWM*" AND Account_Domain!="-" AND Account_Name!="*logon*" AND Account_Domain!=`domain` 
+| fields - matched 
+| rename Account_Name as "Account Name" ComputerName as "Computer Name" src_ip as "Source IP" Account_Domain as "Account Domain" action as Action 
+| eval "Latest Event Time"=strftime(Time, "%Y-%m-%d %H:%M:%S") 
+| fields "Latest Event Time" "Account Name" "Computer Name" "Source IP" "Account Domain" Action Count</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">20</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <drilldown>
+          <set token="acc">$row.Account Name$</set>
+          <set token="comp">$row.Computer Name$</set>
+          <set token="ip">$row.Source IP$</set>
+          <set token="dom">$row.Account Domain$</set>
+          <set token="hide">$click.value$</set>
+          <unset token="form.hide_panel"></unset>
+          <set token="action">$row.Action$</set>
+        </drilldown>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel depends="$hide$">
+      <input type="checkbox" token="To Hide Panal Double Click the Below Box" searchWhenChanged="true">
+        <choice value="hide">Hide Panel</choice>
+        <change>
+          <condition value="hide">
+            <unset token="hide"></unset>
+          </condition>
+        </change>
+        <delimiter> </delimiter>
+      </input>
+      <table>
+        <title>Total Event</title>
+        <search>
+          <query>`Domain-user`  EventCode IN (4624 , 4625) "$acc$" "$comp$" "$ip$" "$dom$" "$action$"  
+| eval Event_Time=strftime(_time,"%Y-%m-%d %H:%M:%S") 
+| stats c by Event_Time Account_Name ComputerName src_ip Account_Domain action 
+| search Account_Name!="*$" 
+| rename Account_Name as "Account Name" ComputerName as "Computer Name" src_ip as "Source IP" Account_Domain as "Account Domain" action as Action Event_Time as "Event Time" c as Count|search "Account Domain"!=`domain`</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+  </row>
+</form>
