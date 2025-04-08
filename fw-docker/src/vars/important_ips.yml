@@ -8,13 +8,14 @@ white_dns: 10.120.0.53
 white_ccs: 10.120.0.111
 white_proxy: 10.120.0.200
 white_inject: 10.120.0.110
-white_chat: 10.120.0.200
-
+white_chat: 10.120.0.11
 # Critical IPs
-wazuh: 1.1.1.1
-wazuh_port: 1516
+# wazuh: 1.1.1.1
+# wazuh_port: 1516
 # wazuh_zone: lan
 # wazuh_protocol: TCP
+# splunk: 1.1.1.1
+# splunk_zone: lan
 
 # Remote IPS
 # remote_ip: 172.16.1.

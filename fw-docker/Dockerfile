@@ -1,4 +1,4 @@
-FROM ubuntu:noble-20241015
+FROM ubuntu:noble-20250127
 
 RUN set -ex ;\
     apt-get update ;\

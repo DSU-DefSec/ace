@@ -8,3 +8,5 @@
 # palo_config_logging: true
 # palo_config_initial_rules: true
 # palo_panos_version: 11.1.2
+# palo_physical: true
+# palo_config_decryption: true

@@ -1,57 +1,55 @@
 ---
-palo_zone:
-  zones:
-    ethernet1/1:
-      zone: wan
-    ethernet1/2:
-      zone: lan
-    # ethernet1/3:
-    # zone:
-    # ethernet1/4:
-    # zone:
-    # ethernet1/5:
-    # zone:
-    # ethernet1/6:
-    # zone:
-    # ethernet1/7:
-    # zone:
-    ethernet1/8:
-      zone: mgt
-    # ethernet1/9:
-    # zone:
-    # ethernet1/10:
-    # zone:
-    # ethernet1/11:
-    # zone:
-    # ethernet1/12:
-    # zone:
+palo_zones:
+  ethernet1/1:
+    zone: wan
+  ethernet1/2:
+    zone: lan
+  ethernet1/3:
+    zone: lan3
+  ethernet1/4:
+    zone: lan4
+  ethernet1/5:
+    zone: lan5
+  ethernet1/6:
+    zone: lan6
+  ethernet1/7:
+    zone: lan7
+  ethernet1/8:
+    zone: lan8
+  ethernet1/9:
+    zone: mgt
+  # ethernet1/10:
+  #  zone: lan10
+  # ethernet1/11:
+  #  zone: lan11
+  # ethernet1/12:
+  #   zone: mgt
 
 cisco_zone:
-  zones:
-    ethernet1/1:
-      zone: wan
-    ethernet1/2:
-      zone: lan
-    ethernet1/3:
-      zone: lan3
-    ethernet1/4:
-      zone: lan4
-    ethernet1/5:
-      zone: lan5
-    ethernet1/6:
-      zone: lan6
-    ethernet1/7:
-      zone: lan7
-    ethernet1/8:
-      zone: lan8
-    ethernet1/9:
-      zone: lan9
-    # ethernet1/10:
-    # zone:
-    # ethernet1/11:
-    # zone:
-    # ethernet1/12:
-    # zone:
+  ethernet1/1:
+    zone: wan
+  ethernet1/2:
+    zone: lan
+  ethernet1/3:
+    zone: lan3
+  ethernet1/4:
+    zone: lan4
+  ethernet1/5:
+    zone: lan5
+  ethernet1/6:
+    zone: lan6
+  ethernet1/7:
+    zone: lan7
+  ethernet1/8:
+    zone: lan8
+  ethernet1/9:
+    zone: lan9
+  # ethernet1/10:
+  # zone:
+  # ethernet1/11:
+  # zone:
+  # ethernet1/12:
+  # zone:
 
 esxi_vswitches:
   - lan
