@@ -6,7 +6,7 @@
     rule_name: inbound-{{ service.key }}{{ item.key }}
     source_zone: ["{{ alias.wan | default('wan') }}"]
     source_ip: [any]
-    destination_zone: ["{{ item.value.zone if item.value.zone is defined else alias.lan | default('lan') }}"]
+    destination_zone: "{{ lookup('template', 'dst_zone.j2') }}"
     destination_ip: ["{{ item.value.ip |  default(lan_net ~ item.key) }}"]
     application: "{{ item.value.svc | default(palo.svc[service.key]) }}"
     action: allow

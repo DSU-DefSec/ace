@@ -4,7 +4,7 @@
 {% elif esxi_vms[lan_net ~ item.key].network is defined %}
 {% set dst_zone = esxi_vms[lan_net ~ item.key].network %}
 {% elif item.value.zone is defined %}
-{% set dst_zone = item.value.zone %}
+{% set dst_zone = item.value.zone | join(',') | trim %}
 {% else %}
 {% set dst_zone = 'lan' %}
 {% endif%}

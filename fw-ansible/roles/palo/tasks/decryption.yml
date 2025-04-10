@@ -1,24 +1,48 @@
-- name: decryption | Generate CA
-  paloaltonetworks.panos.panos_op:
-    provider: "{{ provider }}"
-    cmd: "request certificate generate ca yes certificate-name palo-ca name palo algorithm RSA rsa-nbits 4096"
+# - name: decryption | Generate CA
+#   paloaltonetworks.panos.panos_op:
+#     provider: "{{ provider }}"
+#     cmd_is_xml: true
+#     cmd: |
+#       <request><certificate><generate>
+#         <certificate-name>palo-ca</certificate-name>
+#         <name>palo.ccdc</name>
+#         <ca>yes</ca>
+#         <algorithm>
+#         <RSA>
+#         <rsa-nbits>2048</rsa-nbits>
+#         </RSA>
+#         </algorithm>
+#       </generate></certificate></request>
 
-- name: decryption | Generate Decryption certificate
-  paloaltonetworks.panos.panos_op:
-    provider: "{{ provider }}"
-    cmd: |
-      request certificate generate signed-by palo-ca ca yes hostname palo.ccdc ip {{ inventory_hostname }}
-      certificate-name palo-decrypt algorithm RSA rsa-nbits 4096 name palo.ccdc
+# - name: decryption | Generate Decryption certificate
+#   paloaltonetworks.panos.panos_op:
+#     provider: "{{ provider }}"
+#     cmd_is_xml: true
+#     cmd: |
+#       <request><certificate><generate>
+#         <certificate-name>palo-decrypt</certificate-name>
+#         <name>palo.ccdc</name>
+#         <ca>yes</ca>
+#         <signed-by>palo-ca</signed-by>
+#         <algorithm>
+#         <RSA>
+#         <rsa-nbits>2048</rsa-nbits>
+#         </RSA>
+#         </algorithm>
+#       </generate></certificate></request>
 
 - name: decryption | Create Decryption Rule
   paloaltonetworks.panos.panos_decryption_rule:
     provider: "{{ provider }}"
-    rule_name: "Decryption Rule"
-    rule_type: "SSL Forward Proxy"
+    name: "Decryption Rule"
     action: "decrypt"
-    source_zone: any
-    destination_zone: wan
-    source_address: "any"
-    destination_address: "any"
-    application: "web-browsing"
-    service: "application-default"
+    decryption_type: "ssl-forward-proxy"
+    decryption_profile: "default"
+    source_addresses: "any"
+    source_zones: any
+    destination_addresses: "any"
+    destination_zones: wan
+    state: present
+    log_successful_tls_handshakes: true
+    log_failed_tls_handshakes: true
+    log_setting: "Loggie McLog Face"

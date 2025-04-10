@@ -6,7 +6,7 @@
     rule_name: inbound-esx{{ item.key }}
     source_zone: ["{{ alias.wan | default('wan') }}"]
     source_ip: [any]
-    destination_zone: ["{{ lookup('template', 'dst_zone.j2') }}"]
+    destination_zone: "{{ lookup('template', 'dst_zone.j2') }}"
     destination_ip: ["{{ item.value.ip |  default(lan_net ~ item.key) }}"]
     application: [any]
     action: deny
@@ -26,7 +26,7 @@
     rule_name: inbound-dc{{ item.key }}
     source_zone: ["{{ alias.wan | default('wan') }}"]
     source_ip: [any]
-    destination_zone: ["{{ lookup('template', 'dst_zone.j2') }}"]
+    destination_zone: "{{ lookup('template', 'dst_zone.j2') }}"
     destination_ip: ["{{ item.value.ip |  default(lan_net ~ item.key) }}"]
     application: [windc]
     action: deny
@@ -46,7 +46,7 @@
     rule_name: lan-windc{{ item.key }}
     source_zone: ["{{ alias.lan | default('lan') }}"]
     source_ip: [any]
-    destination_zone: ["{{ lookup('template', 'dst_zone.j2') }}"]
+    destination_zone: "{{ lookup('template', 'dst_zone.j2') }}"
     destination_ip: ["{{ item.value.ip |  default(lan_net ~ item.key) }}"]
     application: [windc]
     action: allow
@@ -67,7 +67,7 @@
     rule_name: lan-esx{{ item.key }}
     source_zone: ["{{ alias.lan | default('lan') }}"]
     source_ip: [any]
-    destination_zone: ["{{ lookup('template', 'dst_zone.j2') }}"]
+    destination_zone: "{{ lookup('template', 'dst_zone.j2') }}"
     destination_ip: ["{{ item.value.ip | default(lan_net ~ item.key) }}"]
     application: [vmware, ssl]
     action: allow
@@ -108,7 +108,7 @@
     rule_name: inbound-remote
     source_zone: ["{{ alias.wan | default('wan') }}"]
     source_ip: "{{ remote_net | list }}"
-    destination_zone: ["{{ lookup('template', 'dst_zone.j2') }}"]
+    destination_zone: "{{ lookup('template', 'dst_zone.j2') }}"
     destination_ip: ["{{ wazuh }}"]
     application: [wazuh-agent, syslog]
     action: allow

@@ -7,10 +7,7 @@
     rule_name: inbound-esx{{ item.key }}
     source_zone: ["{{ alias.wan | default('wan') }}"]
     source_ip: [any]
-    destination_zone:
-      [
-        "{{ item.value.zone if item.value.zone is defined else alias.lan | default('lan') }}",
-      ]
+    destination_zone: "{{ lookup('template', 'dst_zone.j2') }}"
     destination_ip: ["{{ item.value.ip | default(lan_net ~ item.key) }}"]
     application: [any]
     action: deny
@@ -30,10 +27,7 @@
     rule_name: inbound-dc{{ item.key }}
     source_zone: ["{{ alias.wan | default('wan') }}"]
     source_ip: [any]
-    destination_zone:
-      [
-        "{{ item.value.zone if item.value.zone is defined else alias.lan | default('lan') }}",
-      ]
+    destination_zone: "{{ lookup('template', 'dst_zone.j2') }}"
     destination_ip: ["{{ item.value.ip | default(lan_net ~ item.key) }}"]
     application: [windc]
     action: deny
@@ -51,12 +45,9 @@
     provider: "{{ provider }}"
     device_group: "{{ device_group if device_group is defined else omit }}"
     rule_name: lan-windc{{ item.key }}
-    source_zone: ["{{ alias.lan | default('lan') }}"]
+    source_zone: "{{ lookup('template', 'dst_zone.j2') }}"
     source_ip: [any]
-    destination_zone:
-      [
-        "{{ item.value.zone if item.value.zone is defined else alias.lan | default('lan') }}",
-      ]
+    destination_zone: "{{ lookup('template', 'dst_zone.j2') }}"
     destination_ip: ["{{ item.value.ip | default(lan_net ~ item.key) }}"]
     application: [windc, dns]
     action: allow
@@ -75,12 +66,9 @@
     provider: "{{ provider }}"
     device_group: "{{ device_group if device_group is defined else omit }}"
     rule_name: lan-esx{{ item.key }}
-    source_zone: ["{{ alias.lan | default('lan') }}"]
+    source_zone: "{{ lookup('template', 'dst_zone.j2') }}"
     source_ip: [any]
-    destination_zone:
-      [
-        "{{ item.value.zone if item.value.zone is defined else alias.lan | default('lan') }}",
-      ]
+    destination_zone: "{{ lookup('template', 'dst_zone.j2') }}"
     destination_ip: ["{{ item.value.ip | default(lan_net ~ item.key) }}"]
     application: [vmware, ssl]
     action: allow
@@ -201,10 +189,7 @@
     rule_name: local-dns
     source_zone: "lan"
     source_ip: ["{{ lan_mask }}"]
-    destination_zone:
-      [
-        "{{ item.value.zone if item.value.zone is defined else alias.lan | default('lan') }}",
-      ]
+    destination_zone: "{{ lookup('template', 'dst_zone.j2') }}"
     destination_ip: ["{{ item.value.ip | default(lan_net ~ item.key) }}"]
     application: [dns]
     action: allow
@@ -223,12 +208,9 @@
     provider: "{{ provider }}"
     device_group: "{{ device_group if device_group is defined else omit }}"
     rule_name: esx-lan{{ item.key }}
-    source_zone:
-      [
-        "{{ item.value.zone if item.value.zone is defined else alias.lan | default('lan') }}",
-      ]
+    source_zone: "{{ lookup('template', 'dst_zone.j2') }}"
     source_ip: ["{{ item.value.ip | default(lan_net ~ item.key) }}"]
-    destination_zone: ["{{ alias.lan | default('lan') }}"]
+    destination_zone: "{{ lookup('template', 'dst_zone.j2') }}"
     destination_ip: [any]
     application: [dns]
     action: allow
@@ -243,15 +225,15 @@
 
 
 - name: palo_local | Remote to DB
-  when: remote_net is defined
+  when: remote_net is defined and palo_config_initial_rules
   paloaltonetworks.panos.panos_security_rule:
     provider: "{{ provider }}"
     device_group: "{{ device_group if device_group is defined else omit }}"
     rule_name: remote-db
     source_zone: ["{{ alias.wan | default('wan') }}"]
     source_ip: "{{ remote_net }}"
-    destination_zone: ["{{ alias.lan | default('lan') }}"]
-    destination_ip: [1.1.1.1]
+    destination_zone: "{{ lookup('template', 'dst_zone.j2') }}"
+    destination_ip: ["1.1.1.1"]
     application: [any]
     action: allow
     location: before

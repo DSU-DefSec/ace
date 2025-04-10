@@ -47,3 +47,12 @@ releases:
     - 2.1.0_summary.yaml
     - 65-Decryption.yaml
     release_date: '2025-04-07'
+  2.1.1:
+    changes:
+      minor_changes:
+      - Finished decryption (https://github.com/dsiemienas03/ccdc-ansible/pull/72)
+      - Update to lxml (https://github.com/dsiemienas03/ccdc-ansible/pull/71)
+    fragments:
+    - 71-lxml-5.32.yaml
+    - 72-Finished-decryption.yaml
+    release_date: '2025-04-08'

@@ -4,6 +4,15 @@ DSU CCDC Ansible Release Notes
 
 .. contents:: Topics
 
+v2.1.1
+======
+
+Minor Changes
+-------------
+
+- Finished decryption (https://github.com/dsiemienas03/ccdc-ansible/pull/72)
+- Update to lxml (https://github.com/dsiemienas03/ccdc-ansible/pull/71)
+
 v2.1.0
 ======
 

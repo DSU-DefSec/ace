@@ -12,7 +12,10 @@ sudo update-ca-certificates
 
 echo "http_proxy=http://10.120.0.200:8080/
 https_proxy=http://10.120.0.200:8080/
-no_proxy=10.0.0.0/8" >>~/.bashrc
+no_proxy=10.0.0.0/8,10.*
+export http_proxy
+export https_proxy
+export no_proxy" >>~/.bashrc
 
 source .bashrc
 
@@ -20,6 +23,10 @@ echo "use_proxy=yes
 http_proxy=http://10.120.0.200:8080/
 https_proxy=http://10.120.0.200:8080/
 no_proxy=10.0.0.0/8" >>.wgetrc
+
+cp -r ace/fw-docker/src/* .
+cp ace/fw-docker/src/.ansible.cfg .
+cp -r ace/fw-ansible .
 
 # Update and upgrade the system
 sudo apt-get update
@@ -29,7 +36,10 @@ sudo apt-get update
 sudo apt-get install -y \
   curl \
   wget \
-  ca-certificates
+  ca-certificates \
+  python3 \
+  python3-pip \
+  ansible 
 
 # Install Docker and Docker Compose
 # Copied instructions taken from https://docs.docker.com/engine/install/ubuntu/
@@ -70,12 +80,17 @@ echo '{
   "proxies": {
     "http-proxy": "http://10.120.0.200:8080/",
     "https-proxy": "http://10.120.0.200:8080/",
-    "no-proxy": "*.test.example.com,.example.org,127.0.0.0/8"
+    "no-proxy": "127.0.0.0/8"
   }
 }' | sudo tee /etc/docker/daemon.json >/dev/null
 
 # Restart Docker to apply the changes
 sudo systemctl restart docker
+
+ansible-galaxy collection install fw-ansible -vv
+pip install --break-system-packages -r ~/fw-ansible/requirements.txt
+chmod +x scripts/*
+
 
 # Install Splunk
 #

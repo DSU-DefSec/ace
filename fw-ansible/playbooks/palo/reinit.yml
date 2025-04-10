@@ -97,6 +97,12 @@
         tasks_from: interfaces
       when: palo_config_initial_interface
 
+    - name: Create decryption rule
+      when: palo_config_decryption
+      ansible.builtin.import_role:
+        name: dsu.ccdc.palo
+        tasks_from: decryption
+
     # Objects
     - name: Add addresses
       ansible.builtin.import_role:

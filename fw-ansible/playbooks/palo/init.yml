@@ -141,11 +141,11 @@
         cacheable: true
       when: palo_config_initial_groups
 
-    # - name: Create decryption rule
-    #   when: palo_config_decryption
-    #   ansible.builtin.import_role:
-    #     name: dsu.ccdc.palo
-    #     tasks_from: decryption
+    - name: Create decryption rule
+      when: palo_config_decryption
+      ansible.builtin.import_role:
+        name: dsu.ccdc.palo
+        tasks_from: decryption
     # Firewall rules
     - name: Add CCDC firewall Rules
       ansible.builtin.import_role:
