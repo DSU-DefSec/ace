@@ -19,8 +19,8 @@ $LocalUsers = Get-LocalUser | Where-Object { $_.Enabled -eq $true -and $_.Name -
       Set-LocalUser -Name $User.Name -Password (ConvertTo-SecureString $q -AsPlainText -Force)
       Set-LocalUser -Name $User.Name -Password (ConvertTo-SecureString $l -AsPlainText -Force)
 
-      Write-Host "Password changed for $($User.Name)" -ForegroundColor Green
-      Write-Host $l
+        "Local user password changed: $($User.Name) => $l"
+
     } catch {
       Write-Host "Password change failed for $($User.Name)" -ForegroundColor Red
     }
@@ -37,8 +37,8 @@ foreach ($User in $DomainUsers) {
       Set-ADAccountPassword -Identity $User.SamAccountName -NewPassword (ConvertTo-SecureString $q -AsPlainText -Force) -reset
       Set-ADAccountPassword -Identity $User.SamAccountName -NewPassword (ConvertTo-SecureString $l -AsPlainText -Force) -reset
 
-      Write-Host "Domain password changed for $($User.SamAccountName)" -ForegroundColor Green
-      Write-Host $l
+        "Domain user password changed: $($User.SamAccountName) => $l"
+
   } catch {
       Write-Host "Failed to change domain password for $($User.SamAccountName): $_" -ForegroundColor Red
   }
