@@ -57,7 +57,7 @@ iptables -A TRAFFICINPUT -m connlimit --connlimit-above 2 -j REJECT
 iptables -A TRAFFICINPUT -m connlimit --connlimit-above 2 -j REJECT
 
 
-iptables -I TRAFFICINPUT -p tcp --dport 80 -m string ! --string "Mozilla\5.0" --algo bm --to 1000 -m conntrack --ctstate RELATED,ESTABLISHED  -j DROP
+iptables -I TRAFFICINPUT -p tcp --dport 80 -m string ! --string "Mozilla" --algo bm --to 1000 -m conntrack --ctstate RELATED,ESTABLISHED  -j DROP
 iptables -A TRAFFICINPUT -p tcp --dport 80 -m string ! --string "Windows" --algo bm --to 1000 -m conntrack --ctstate RELATED,ESTABLISHED -j DROP
 
 iptables -I TRAFFICINPUT -p tcp --dport 22 -j DROP
